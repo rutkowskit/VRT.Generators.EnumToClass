@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0</TargetFrameworks>
+		<!-- ;net6.0;net7.0;net8.0 -->
+		<NoWarn>$(NoWarn);CA1014;CA1308;CA1031;CA1307</NoWarn>
+		<IsRoslynComponent>true</IsRoslynComponent>
+		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+	</PropertyGroup>
+
+	<PropertyGroup Label="NuGet">
+		<NoWarn>$(NoWarn);NU5128;CA1724</NoWarn>
+		<DevelopmentDependency>true</DevelopmentDependency>
+		<IncludeBuildOutput>false</IncludeBuildOutput>
+		<GenerateDocumentationFile>false</GenerateDocumentationFile>
+		<Description>C# Source Generator library to generate Class for Enum values.</Description>
+		<PackageTags>enum;generator;enum to class;source generator;smart enum</PackageTags>
+	</PropertyGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="4.8.0" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="4.8.0" />
+	</ItemGroup>
+	
+	<ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" VersionOverride="4.8.0" />
+	</ItemGroup>
+
+	<ItemGroup Label="Attributes">
+		<EmbeddedResource Include="../$(AssemblyName).Attributes/*.cs" Visible="false" />
+		<AdditionalFiles Include="../$(AssemblyName).Attributes/*.cs" Visible="false" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EnumToClass.Attributes\EnumToClass.Attributes.csproj" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup Condition=" '$(TargetFramework)' == '' ">
+		<None Include="$(AssemblyName).props" Pack="true" PackagePath="build" />
+		<None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.3.1/cs" Visible="false" />
+		<None Include="$(OutputPath)\netstandard2.0\$(AssemblyName).Attributes.dll" Pack="true" PackagePath="analyzers/dotnet/roslyn4.3.1/cs" Visible="false" />
+	</ItemGroup>
+</Project>

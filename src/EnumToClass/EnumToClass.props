@@ -1,0 +1,13 @@
+﻿<Project>
+    <ItemGroup>
+        <CompilerVisibleProperty Include="RecognizeFramework_DefineConstants" />
+        <CompilerVisibleProperty Include="RecognizeFramework_Version" />        
+    </ItemGroup>
+
+    <Target Name="CreateDefineConstants"
+            BeforeTargets="GenerateMSBuildEditorConfigFileShouldRun;GenerateMSBuildEditorConfigFileCore">
+        <PropertyGroup>
+            <RecognizeFramework_DefineConstants>$(DefineConstants.Replace(';',','))</RecognizeFramework_DefineConstants>
+        </PropertyGroup>
+    </Target>
+</Project>
