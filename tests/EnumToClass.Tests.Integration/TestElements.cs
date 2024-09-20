@@ -16,6 +16,6 @@ internal sealed partial class TestElementClass
 }
 
 [EnumToClass<TestElements>]
-public sealed partial class TestElementRecord
+public sealed partial record TestElementRecord
 {
 }

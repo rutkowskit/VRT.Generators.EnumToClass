@@ -1,4 +1,7 @@
-﻿namespace EnumToClass.Tests.Integration;
+﻿using System;
+using System.Linq;
+
+namespace EnumToClass.Tests.Integration;
 
 public sealed class EnumToClassTests
 {
@@ -51,6 +54,22 @@ public sealed class EnumToClassTests
         sut.Value.Should().Be(expectedValue);
     }
 
+    [Theory]
+    [InlineData(TestElements.None)]
+    [InlineData(TestElements.Element1)]
+    [InlineData(TestElements.Element2)]
+    [InlineData(TestElements.Element3)]
+    public void Generated_ImplicitConversionToUnderlyingEnumType_ShouldSucceed(TestElements value)
+    {
+        var expectedValue = (int)value;
+        TestElementClass sut = value;
+
+        int underyingTypeValue = sut;
+
+        underyingTypeValue.Should().Be(expectedValue);
+    }
+
+
     [Fact]
     public void Equals_WhenSameElementClasses_ShouldBeTrue()
     {
@@ -58,6 +77,15 @@ public sealed class EnumToClassTests
         TestElementClass b = TestElementClass.Element1;
 
         a.Should().BeEquivalentTo(b);
+    }
+
+    [Fact]
+    public void GetAll_WhenTestElementClass_ShouldReturnAllValues()
+    {
+        var allValues = TestElementClass.GetAll();
+        var expectedValues = Enum.GetValues<TestElements>();
+        allValues.Should().HaveCount(expectedValues.Length);
+        expectedValues.All(e => allValues.Any(v => v.Value == e)).Should().BeTrue();
     }
 
     [Fact]
