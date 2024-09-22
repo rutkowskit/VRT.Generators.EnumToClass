@@ -4,8 +4,17 @@ namespace EnumToClass.Tests.Integration;
 
 public enum TestElements
 {
+    /// <summary>
+    /// Empty element
+    /// </summary>
     None,
+    /// <summary>
+    /// First element of enum
+    /// </summary>
     Element1,
+    /// <summary>
+    /// Second element of enum
+    /// </summary>
     Element2,
     Element3
 }

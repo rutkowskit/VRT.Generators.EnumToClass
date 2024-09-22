@@ -1,6 +1,7 @@
 ﻿using EnumToClass;
 using EnumToClass.Helpers;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Reflection;
@@ -13,7 +14,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
 {
     private static readonly Type AttributeType = typeof(EnumToClass.EnumToClassAttribute<>);
     private static readonly string AttributeTypeName = AttributeType.GetSimpleTypeName();
-
+    private const string EndOfLine = "\r\n";
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // System.Diagnostics.Debugger.Launch();
@@ -36,7 +37,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
             {
                 var (classDecl, compilation) = pair;
                 var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                var classSymbol = model.GetDeclaredSymbol(classDecl, ct) as INamedTypeSymbol;
+                var classSymbol = model.GetDeclaredSymbol(classDecl, ct);
 
                 var attributeData = classSymbol?.GetAttributes()
                     .Where(a => a.AttributeClass != null)
@@ -169,29 +170,31 @@ public class EnumToClassGenerator : IIncrementalGenerator
                 {
                     private static readonly ReadOnlyDictionary<string, {{className}}> ValueByNameMap = new ReadOnlyDictionary<string, {{className}}>(new Dictionary<string, {{className}}>()
                     {
-                        {{string.Join(",\r\n            ", ToDictionaryEntries(enumMembers, className, fullEnumTypeName))}}
+                        {{string.Join($",{EndOfLine}            ", ToDictionaryEntries(enumMembers, className, fullEnumTypeName))}}
                     });                        
-                    {{string.Join("\r\n        ", ToConstDeclaration(enumMembers))}}
+                    {{string.Join($"{EndOfLine}        ", ToConstDeclaration(enumMembers))}}
                 }
             }
             """;
     }
-
     private static IEnumerable<string> ToDictionaryEntries(IEnumerable<IFieldSymbol> enumMembers, string className, string fullEnumTypeName)
     {
 
         foreach (var member in enumMembers)
         {
-            yield return $"[\"{member.Name}\"] = new {className}({member.ToDisplayString()})";
+            yield return $"""["{member.Name}"] = new {className}({member.ToDisplayString()})""";
         }
     }
     private static IEnumerable<string> ToConstDeclaration(IEnumerable<IFieldSymbol> enumMembers)
     {
         foreach (var member in enumMembers)
         {
+            yield return member.GetMemberDocumentationComment();
             yield return $"public const string {member.Name} = \"{member.Name}\";";
         }
     }
+
+
     private static string GetPartialDeclaration(INamedTypeSymbol symbol)
         => $"{symbol.GetAccessibility()} partial {(symbol.IsRecord ? "record" : "class")} {symbol.Name}";
 
