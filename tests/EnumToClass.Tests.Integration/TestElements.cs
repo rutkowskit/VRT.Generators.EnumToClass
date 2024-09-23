@@ -1,4 +1,5 @@
-﻿using VRT.Generators.EnumToClass;
+﻿using System.ComponentModel;
+using VRT.Generators.EnumToClass;
 
 namespace EnumToClass.Tests.Integration;
 
@@ -16,6 +17,7 @@ public enum TestElements
     /// Second element of enum
     /// </summary>
     Element2,
+    [Description("This is element 3 of the test enum")]
     Element3
 }
 

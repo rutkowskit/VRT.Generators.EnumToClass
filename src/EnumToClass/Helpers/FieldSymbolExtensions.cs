@@ -24,10 +24,20 @@ internal static class FieldSymbolExtensions
             return result;
         }
 
+        var documentationString = symbol.GetDescriptionAttributeValue() ?? symbol!.Name;
+
         return $"""
                 /// <summary>
-                /// {symbol!.Name}
+                /// {documentationString}
                 /// </summary>
                 """;
+    }
+    public static string? GetDescriptionAttributeValue(this IFieldSymbol? symbol)
+    {
+        var descriptionAttribute = symbol?
+            .GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.DescriptionAttribute");
+
+        return descriptionAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
     }
 }

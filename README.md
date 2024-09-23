@@ -109,6 +109,9 @@ namespace EnumToClass.Tests.Integration
 ```
 ## Change Log
 
+### Version 1.0.5
+1. Add documentation comments based on `DescriptionAttribute` value
+
 ### Version 1.0.4
 1. Add documentation comments to generated const values based on documentation comments for the enum element
 
