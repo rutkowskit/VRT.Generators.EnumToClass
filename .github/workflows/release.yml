@@ -1,0 +1,45 @@
+name: .NET Build and Publish
+
+on:
+  push:
+    branches: [ "master" ]
+    tags: ["v*.*.*"]
+permissions: read-all
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        filter: tree:0
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x' # Specify the .NET version you're using
+
+    - name: Install dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build -c Release
+
+    - name: Run tests
+      run: dotnet test --no-build --verbosity normal
+
+    - name: Pack
+      run: dotnet pack -c Release --no-build
+
+    - name: Publish to NuGet
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}  
+        NUGET_SOURCE: ${{ secrets.NUGET_SOURCE }}  
+      if: env.NUGET_SOURCE != '' || env.NUGET_API_KEY != ''        
+      run: dotnet nuget push '**/bin/Release/*.nupkg' --api-key ${{ env.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE }}
+      

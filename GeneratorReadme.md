@@ -14,3 +14,8 @@ Build using release configuration:
 `dotnet build -c Release`
 
 The build command will also generate nuget package with the version eqal to the tag.
+
+
+## Remove stale tags
+
+`git fetch --prune --tags`
