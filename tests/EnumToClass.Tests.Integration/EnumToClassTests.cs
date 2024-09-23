@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 
 namespace EnumToClass.Tests.Integration;
 
@@ -75,7 +76,6 @@ public sealed class EnumToClassTests
     {
         TestElementClass a = TestElementClass.Element1;
         TestElementClass b = TestElementClass.Element1;
-
         a.Should().BeEquivalentTo(b);
     }
 
@@ -94,5 +94,12 @@ public sealed class EnumToClassTests
         TestElementRecord a = TestElementRecord.Element1;
         TestElementRecord b = TestElementRecord.Element1;
         a.Should().BeEquivalentTo(b);
+    }
+
+    [Fact]
+    public void Generated_WhenExternalEnumIsUsedInParameter_ShouldContainAllValuesFromSource()
+    {
+        var a = Enum.GetValues<HttpResponseHeader>();
+        HttpResponseHeaderClass.GetAll().Should().HaveCount(a.Length);
     }
 }

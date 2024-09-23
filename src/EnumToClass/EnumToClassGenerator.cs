@@ -18,7 +18,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // System.Diagnostics.Debugger.Launch();
-        // add attribute source code to calling assembly
+        // add attribute source code to calling assembly        
         context.RegisterPostInitializationOutput(static context =>
         {
             context.AddSource(
@@ -198,8 +198,5 @@ public class EnumToClassGenerator : IIncrementalGenerator
     private static string GetPartialDeclaration(INamedTypeSymbol symbol)
         => $"{symbol.GetAccessibility()} partial {(symbol.IsRecord ? "record" : "class")} {symbol.Name}";
 
-    private static string GetFullEnumTypeName(ITypeSymbol enumType)
-        => string.IsNullOrWhiteSpace(enumType.ContainingNamespace.Name)
-            ? enumType.Name
-            : $"{enumType.ContainingNamespace.Name}.{enumType.Name}";
+    private static string GetFullEnumTypeName(ITypeSymbol enumType) => enumType.ToDisplayString();
 }

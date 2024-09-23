@@ -1,6 +1,7 @@
 ﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Xml.Linq;
 
 namespace EnumToClass.Helpers;
 
@@ -8,36 +9,77 @@ internal static class FieldSymbolExtensions
 {
     public static string GetMemberDocumentationComment(this IFieldSymbol symbol)
     {
-        var syntaxReference = symbol?.DeclaringSyntaxReferences.FirstOrDefault();
-        if (syntaxReference == null || syntaxReference.GetSyntax() is not EnumMemberDeclarationSyntax syntaxNode)
+        if (symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is MemberDeclarationSyntax syntaxNode)
         {
-            return "";
+            return syntaxNode.GetMemberDeclarationDocumentationComment()
+                ?? symbol.GetSymbolDocumentationCommentByDescription()
+                ?? "";
         }
-        var result = syntaxNode
-            .GetLeadingTrivia()
-            .FirstOrDefault(trivia =>
-                trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
-                trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
-            .ToFullString();
-        if (string.IsNullOrWhiteSpace(result) is false)
+        return symbol.GetSymbolDocumentationCommentByDescription() ?? "";
+    }
+    public static string? GetSymbolDocumentationCommentByDescription(this IFieldSymbol? symbol)
+    {
+        if (symbol is null)
         {
-            return result;
+            return null;
         }
-
-        var documentationString = symbol.GetDescriptionAttributeValue() ?? symbol!.Name;
+        var documentationString = symbol.GetDocumentationCommentXml().ConvertToSummary().NullIfEmtpy()
+            ?? symbol.GetDescriptionAttributeValue().NullIfEmtpy()
+            ?? symbol.Name;
 
         return $"""
                 /// <summary>
-                /// {documentationString}
+                /// {documentationString!.Replace("\n", "\n                /// ")}
                 /// </summary>
                 """;
     }
+
     public static string? GetDescriptionAttributeValue(this IFieldSymbol? symbol)
     {
         var descriptionAttribute = symbol?
             .GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.DescriptionAttribute");
+        var result = descriptionAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
+        return result.NullIfEmtpy();
+    }
 
-        return descriptionAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
+    private static string? GetMemberDeclarationDocumentationComment(this MemberDeclarationSyntax? memberSyntax)
+    {
+        var result = memberSyntax?
+            .GetLeadingTrivia()
+            .Where(trivia =>
+                trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
+                trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
+            .Select(f => f.ToFullString())
+            .FirstOrDefault(f => string.IsNullOrWhiteSpace(f) is false);
+
+        return result.NullIfEmtpy();
+    }
+
+    private static string? NullIfEmtpy(this string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+
+    private static string ConvertToSummary(this string? xmlDocumentation)
+    {
+        if (string.IsNullOrEmpty(xmlDocumentation))
+        {
+            return string.Empty;
+        }
+
+        try
+        {
+            var doc = XDocument.Parse(xmlDocumentation);
+
+            var summaryElement = doc.Root.Element("summary");
+            if (summaryElement != null)
+            {
+                return summaryElement.Value.Trim();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error parsing XML documentation: {ex.Message}");
+        }
+
+        return string.Empty;
     }
 }
