@@ -39,5 +39,5 @@ jobs:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}  
         NUGET_SOURCE: ${{ secrets.NUGET_SOURCE }}  
       if: env.NUGET_SOURCE != '' || env.NUGET_API_KEY != ''        
-      run: dotnet nuget push '**/bin/Release/*.nupkg' --api-key ${{ env.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE }}
+      run: dotnet nuget push '**/bin/Release/*.nupkg' --api-key ${{ env.NUGET_API_KEY }} --source ${{ env.NUGET_SOURCE }} --skip-duplicate
       
