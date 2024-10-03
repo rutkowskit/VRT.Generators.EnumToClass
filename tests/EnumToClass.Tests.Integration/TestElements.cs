@@ -17,8 +17,8 @@ public enum TestElements
     /// Second element of enum
     /// </summary>
     Element2,
-    [Description("This is element 3 of the test enum")]
 
+    [Description("This is element 3 of the test enum")]
     Element3,
 
 
@@ -59,6 +59,7 @@ public enum TestElements
     /// </remarks>    
     [Description("The fifth element")]
     Element5,
+    // Don't care comment
     Element6,
 }
 

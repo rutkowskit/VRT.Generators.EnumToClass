@@ -30,8 +30,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnumToClass.Tests.Integrati
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnumToClass.Tests.Snapshot", "tests\EnumToClass.Tests.Snapshot\EnumToClass.Tests.Snapshot.csproj", "{889088BC-38A0-4C07-929B-2A5FBE878303}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EnumToClass.Attributes", "src\EnumToClass.Attributes\EnumToClass.Attributes.csproj", "{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,10 +48,6 @@ Global
 		{889088BC-38A0-4C07-929B-2A5FBE878303}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{889088BC-38A0-4C07-929B-2A5FBE878303}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{889088BC-38A0-4C07-929B-2A5FBE878303}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -62,7 +56,6 @@ Global
 		{185B88A9-1950-4B1E-BD1A-818A2AC748DE} = {88D0D8E7-6C76-4C2E-A18D-FB6526BB7EFC}
 		{5BF21C29-857F-41AC-8AFF-D783788C7BC0} = {CC597EFF-38B2-47F8-8152-381F3F2460FD}
 		{889088BC-38A0-4C07-929B-2A5FBE878303} = {CC597EFF-38B2-47F8-8152-381F3F2460FD}
-		{F21758C1-5810-4FE5-BCCC-A6A0C81DFB8B} = {88D0D8E7-6C76-4C2E-A18D-FB6526BB7EFC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {AE8F8AFE-A746-40AF-977A-ACC2F098C796}

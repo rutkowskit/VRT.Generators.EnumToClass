@@ -50,16 +50,35 @@ internal static class FieldSymbolExtensions
 
     private static string? GetMemberDeclarationDocumentationComment(this MemberDeclarationSyntax? memberSyntax)
     {
-        var result = memberSyntax?
-            .GetLeadingTrivia()
+        var trivias = memberSyntax?.GetLeadingTrivia();
+        if (trivias is null)
+        {
+            return null;
+        }
+        var result = GetDocumentation(trivias.Value)
+            ?? GetDocumentationFromSingleLineComments(trivias.Value);
+        return result.NullIfEmpty();
+    }
+    private static string? GetDocumentation(SyntaxTriviaList trivias)
+    {
+        var documentationTrivias = trivias
             .Where(trivia =>
                 trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
-                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
                 trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
             .Select(f => f.ToFullString())
             .FirstOrDefault(f => string.IsNullOrWhiteSpace(f) is false);
-
-        return result.NullIfEmpty();
+        return documentationTrivias.NullIfEmpty();
+    }
+    private static string? GetDocumentationFromSingleLineComments(SyntaxTriviaList trivias)
+    {
+        var documentationTrivias = trivias
+            .Where(trivia => trivia.IsKind(SyntaxKind.SingleLineCommentTrivia))
+            .Select(f => f.ToFullString())
+            .ToArray();
+        var result = string.Join("\n", documentationTrivias).NullIfEmpty();
+        return result is null || result.Contains("summary") is false
+            ? null
+            : result;
     }
 
     private static string? NullIfEmpty(this string? value) => string.IsNullOrWhiteSpace(value) ? null : value;

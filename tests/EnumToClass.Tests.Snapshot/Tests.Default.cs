@@ -7,10 +7,10 @@ using VRT.Generators;
 
 namespace EnumToClass.Tests.Snapshot;
 
-public class EnumToClassGeneratorTests
+public sealed partial class Tests
 {
     [Fact]
-    public Task EnumToClass_WithDescription()
+    public Task EnumToClass_Default()
     {
         var sourceCode = """            
             using System.ComponentModel;            
@@ -58,7 +58,7 @@ public class EnumToClassGeneratorTests
                 Element5,
             }
 
-            [EnumToClass<TestElements>(WithDescription = true)]
+            [EnumToClass<TestElements>]
             public sealed partial record TestElementRecord;            
             """;
         return CheckSourceCode<EnumToClassGenerator>(sourceCode);

@@ -6,6 +6,7 @@ namespace VRT.Generators;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 internal sealed record EnumToClassData
 {
+    private IReadOnlyCollection<EnumFieldData> _enumFields = [];
     public static EnumToClassData? FromClass(INamedTypeSymbol? classWithAttribute)
     {
         var attributeData = classWithAttribute?.GetAttribute(
@@ -31,7 +32,7 @@ internal sealed record EnumToClassData
                 .TryGetNamedArgument<bool>(EnumToClassAttributeDefinition.WithDescriptionPropertyName, out var withDescription) && withDescription,
             IsRecord = classWithAttribute.IsRecord,
             ClassPartialDeclaration = classWithAttribute.GetPartialDeclaration(),
-            EnumFields = enumTypeSymbol
+            _enumFields = enumTypeSymbol
                 .GetMembers()
                 .Select(EnumFieldData.FromSymbol)
                 .Where(f => f is not null)
@@ -47,8 +48,8 @@ internal sealed record EnumToClassData
     public string ClassNamespace { get; private set; } = default!;
     public bool GenerateDescription { get; private set; }
     public bool IsRecord { get; private set; }
-    public IReadOnlyCollection<EnumFieldData> EnumFields { get; private set; } = [];
 
+    public IReadOnlyCollection<EnumFieldData> GetEnumFields() => _enumFields;
     public string GetConstructorDeclaration()
     {
         return GenerateDescription
@@ -71,7 +72,7 @@ internal sealed record EnumToClassData
     }
     public string GetEmptyItemDefinition()
     {
-        var firstEnumField = EnumFields.FirstOrDefault();
+        var firstEnumField = GetEnumFields().FirstOrDefault();
         return firstEnumField is null
             ? ""
             : $"public static {ClassName} Empty {{ get; }} = {GetClassContruction(firstEnumField)};";

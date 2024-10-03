@@ -15,9 +15,9 @@ public class EnumToClassGenerator : IIncrementalGenerator
     {
         // _ = System.Diagnostics.Debugger.Launch();
         // add attribute source code to calling assembly        
-        context.RegisterPostInitializationOutput(static context =>
+        context.RegisterPostInitializationOutput(static ctx =>
         {
-            context.AddSource(
+            ctx.AddSource(
                 hintName: $"{EnumToClassAttributeDefinition.AttributeTypeName}.g.cs",
                 source: EnumToClassAttributeDefinition.SourceCode);
         });
@@ -25,21 +25,21 @@ public class EnumToClassGenerator : IIncrementalGenerator
         var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
             fullyQualifiedMetadataName: EnumToClassAttributeDefinition.FullyQualifiedName,
             predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
-            transform: static (context, _) =>
+            transform: static (ctx, _) =>
             {
-                var classDecl = context.TargetSymbol as INamedTypeSymbol;
+                var classDecl = ctx.TargetSymbol as INamedTypeSymbol;
                 return EnumToClassData.FromClass(classDecl);
             })
             .Where(n => n is not null);
 
         // Generate the partial class for each matched class
-        context.RegisterSourceOutput(pipeline, static (context, model) =>
+        context.RegisterSourceOutput(pipeline, static (ctx, model) =>
         {
             var classSource = GenerateCodeForEnumMembers(model!);
-            context.AddSource($"{model!.ClassName}_Constants.g.cs", SourceText.From(classSource, Encoding.UTF8));
+            ctx.AddSource($"{model!.ClassName}_Constants.g.cs", SourceText.From(classSource, Encoding.UTF8));
 
             var constructorSource = GeneratePropertiesAndConstructor(model);
-            context.AddSource($"{model.ClassName}_Constructors.g.cs", SourceText.From(constructorSource, Encoding.UTF8));
+            ctx.AddSource($"{model.ClassName}_Constructors.g.cs", SourceText.From(constructorSource, Encoding.UTF8));
         });
     }
 
@@ -135,14 +135,14 @@ public class EnumToClassGenerator : IIncrementalGenerator
     }
     private static IEnumerable<string> ToDictionaryEntries(EnumToClassData data)
     {
-        foreach (var member in data.EnumFields)
+        foreach (var member in data.GetEnumFields())
         {
             yield return $"""["{member.Name}"] = {data.GetClassContruction(member)}""";
         }
     }
     private static IEnumerable<string> ToConstDeclaration(EnumToClassData data)
     {
-        foreach (var member in data.EnumFields)
+        foreach (var member in data.GetEnumFields())
         {
             yield return member.DocumentationComment ?? "";
             yield return $"public const string {member.Name} = \"{member.Name}\";";

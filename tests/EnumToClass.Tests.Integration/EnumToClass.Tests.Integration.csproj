@@ -8,18 +8,12 @@
 		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
 
-	<Import Project="..\..\src\EnumToClass\EnumToClass.props" />
-
 	<ItemGroup>		
 		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />		
 	</ItemGroup>
 
-	<ItemGroup>
+	<ItemGroup>		
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" />
 	</ItemGroup>
-	<ItemGroup>
-		<Using Include="Xunit" />
-	</ItemGroup>
-
 </Project>
