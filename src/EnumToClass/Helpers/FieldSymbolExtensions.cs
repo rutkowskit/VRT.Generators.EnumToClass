@@ -9,13 +9,18 @@ internal static class FieldSymbolExtensions
 {
     public static string GetMemberDocumentationComment(this IFieldSymbol symbol)
     {
-        if (symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() is MemberDeclarationSyntax syntaxNode)
+        return symbol.GetSymbolDocumentationCommentBySyntax()
+            ?? symbol.GetSymbolDocumentationCommentByDescription()
+            ?? "";
+    }
+
+    public static string? GetSymbolDocumentationCommentBySyntax(this IFieldSymbol? symbol)
+    {
+        return symbol?.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax() switch
         {
-            return syntaxNode.GetMemberDeclarationDocumentationComment()
-                ?? symbol.GetSymbolDocumentationCommentByDescription()
-                ?? "";
-        }
-        return symbol.GetSymbolDocumentationCommentByDescription() ?? "";
+            MemberDeclarationSyntax syntaxNode => syntaxNode.GetMemberDeclarationDocumentationComment(),
+            _ => null
+        };
     }
     public static string? GetSymbolDocumentationCommentByDescription(this IFieldSymbol? symbol)
     {
@@ -23,8 +28,8 @@ internal static class FieldSymbolExtensions
         {
             return null;
         }
-        var documentationString = symbol.GetDocumentationCommentXml().ConvertToSummary().NullIfEmtpy()
-            ?? symbol.GetDescriptionAttributeValue().NullIfEmtpy()
+        var documentationString = symbol.GetDocumentationCommentXml(expandIncludes: true).ConvertToSummary().NullIfEmpty()
+            ?? symbol.GetDescriptionAttributeValue().NullIfEmpty()
             ?? symbol.Name;
 
         return $"""
@@ -40,7 +45,7 @@ internal static class FieldSymbolExtensions
             .GetAttributes()
             .FirstOrDefault(attr => attr.AttributeClass?.ToDisplayString() == "System.ComponentModel.DescriptionAttribute");
         var result = descriptionAttribute?.ConstructorArguments.FirstOrDefault().Value?.ToString();
-        return result.NullIfEmtpy();
+        return result.NullIfEmpty();
     }
 
     private static string? GetMemberDeclarationDocumentationComment(this MemberDeclarationSyntax? memberSyntax)
@@ -49,14 +54,15 @@ internal static class FieldSymbolExtensions
             .GetLeadingTrivia()
             .Where(trivia =>
                 trivia.IsKind(SyntaxKind.SingleLineDocumentationCommentTrivia) ||
+                trivia.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
                 trivia.IsKind(SyntaxKind.MultiLineDocumentationCommentTrivia))
             .Select(f => f.ToFullString())
             .FirstOrDefault(f => string.IsNullOrWhiteSpace(f) is false);
 
-        return result.NullIfEmtpy();
+        return result.NullIfEmpty();
     }
 
-    private static string? NullIfEmtpy(this string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
+    private static string? NullIfEmpty(this string? value) => string.IsNullOrWhiteSpace(value) ? null : value;
 
     private static string ConvertToSummary(this string? xmlDocumentation)
     {

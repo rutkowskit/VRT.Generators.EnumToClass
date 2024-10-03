@@ -1,90 +1,50 @@
-﻿using EnumToClass;
-using EnumToClass.Helpers;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
+﻿using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using System.Reflection;
 using System.Text;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace VRT.Generators;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 [Generator]
 public class EnumToClassGenerator : IIncrementalGenerator
 {
-    private static readonly Type AttributeType = typeof(EnumToClass.EnumToClassAttribute<>);
-    private static readonly string AttributeTypeName = AttributeType.GetSimpleTypeName();
     private const string EndOfLine = "\r\n";
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
-        // System.Diagnostics.Debugger.Launch();
+        // _ = System.Diagnostics.Debugger.Launch();
         // add attribute source code to calling assembly        
         context.RegisterPostInitializationOutput(static context =>
         {
             context.AddSource(
-                hintName: $"{AttributeTypeName}.g.cs",
-                source: Assembly.GetExecutingAssembly().GetString($"{AttributeTypeName}.cs"));
+                hintName: $"{EnumToClassAttributeDefinition.AttributeTypeName}.g.cs",
+                source: EnumToClassAttributeDefinition.SourceCode);
         });
 
-        var classesWithAttribute = context.SyntaxProvider
-            .CreateSyntaxProvider(
-                predicate: static (s, _) => HasAnyAttribute(s),
-                transform: static (ctx, _) => (TypeDeclarationSyntax)ctx.Node)
-            .Where(static classDecl => classDecl != null)
-            .Select((classDecl, _) => classDecl)
-            .Combine(context.CompilationProvider)
-            .Select((pair, ct) =>
+        var pipeline = context.SyntaxProvider.ForAttributeWithMetadataName(
+            fullyQualifiedMetadataName: EnumToClassAttributeDefinition.FullyQualifiedName,
+            predicate: static (syntaxNode, _) => syntaxNode is TypeDeclarationSyntax,
+            transform: static (context, _) =>
             {
-                var (classDecl, compilation) = pair;
-                var model = compilation.GetSemanticModel(classDecl.SyntaxTree);
-                var classSymbol = model.GetDeclaredSymbol(classDecl, ct);
-
-                var attributeData = classSymbol?.GetAttributes()
-                    .Where(a => a.AttributeClass != null)
-                    .Where(a => a.AttributeClass!.ContainingNamespace.ToDisplayString() == AttributeType.Namespace)
-                    .FirstOrDefault(a => a.AttributeClass!.Name == AttributeTypeName);
-
-                if (attributeData?.AttributeClass != null
-                    && attributeData.AttributeClass.TypeArguments.Length > 0
-                    && attributeData.AttributeClass.TypeArguments[0] is INamedTypeSymbol enumTypeSymbol)
-                {
-                    return (classSymbol, enumType: enumTypeSymbol);
-                }
-                return (null!, null!);
+                var classDecl = context.TargetSymbol as INamedTypeSymbol;
+                return EnumToClassData.FromClass(classDecl);
             })
-            .Where(pair => pair.classSymbol != null);
+            .Where(n => n is not null);
 
         // Generate the partial class for each matched class
-        context.RegisterSourceOutput(classesWithAttribute, (spc, pair) =>
+        context.RegisterSourceOutput(pipeline, static (context, model) =>
         {
-            var (classSymbol, enumType) = pair;
-            if (enumType != null && classSymbol != null)
-            {
-                var classSource = GenerateCodeForEnumMembers(classSymbol, enumType);
-                spc.AddSource($"{classSymbol.Name}_Constants.g.cs", SourceText.From(classSource, Encoding.UTF8));
+            var classSource = GenerateCodeForEnumMembers(model!);
+            context.AddSource($"{model!.ClassName}_Constants.g.cs", SourceText.From(classSource, Encoding.UTF8));
 
-                var constructorSource = GeneratePropertiesAndConstructor(classSymbol, enumType);
-                spc.AddSource($"{classSymbol.Name}_Constructors.g.cs", SourceText.From(constructorSource, Encoding.UTF8));
-            }
+            var constructorSource = GeneratePropertiesAndConstructor(model);
+            context.AddSource($"{model.ClassName}_Constructors.g.cs", SourceText.From(constructorSource, Encoding.UTF8));
         });
     }
-    private static bool HasAnyAttribute(SyntaxNode syntaxNode)
-    {
-        return syntaxNode switch
-        {
-            ClassDeclarationSyntax classDecl when classDecl.AttributeLists.Count > 0 => true,
-            RecordDeclarationSyntax recordDecl when recordDecl.AttributeLists.Count > 0 => true,
-            _ => false
-        };
-    }
 
-    private static string GeneratePropertiesAndConstructor(INamedTypeSymbol classSymbol, INamedTypeSymbol enumType)
+    private static string GeneratePropertiesAndConstructor(EnumToClassData data)
     {
-        var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-        var className = classSymbol.Name;
-        var fullEnumTypeName = GetFullEnumTypeName(enumType);
-        var enumUnderlyingTypeName = enumType.EnumUnderlyingType?.ToDisplayString() ?? "int";
-
         var code = $$"""
             //<auto-generated />                        
             using System.Collections.Generic;
@@ -92,71 +52,67 @@ public class EnumToClassGenerator : IIncrementalGenerator
             using System.Linq;
 
             #nullable enable
-            namespace {{namespaceName}}
+            namespace {{data.ClassNamespace}}
             {
-                {{GetPartialDeclaration(classSymbol)}}            
+                {{data.ClassPartialDeclaration}}            
                 {                    
-                    private {{className}}({{fullEnumTypeName}} value)
+                    {{data.GetConstructorDeclaration()}}
                     {
                         Name = value.ToString();
-                        IsEmpty = value == default({{fullEnumTypeName}});
+                        IsEmpty = value == default({{data.EnumTypeFullName}});
                         Value = value;
+                        {{data.GetDescriptionFieldInitialization()}}
                     }
+                    {{data.GetEmptyItemDefinition()}}
                     public string Name { get; }
-                    public {{fullEnumTypeName}} Value { get; }
-                    public bool IsEmpty { get; }                            
+                    public {{data.EnumTypeFullName}} Value { get; }
+                    public bool IsEmpty { get; }                    
 
-                    public static {{className}} Empty { get; } = new {{className}}(default({{fullEnumTypeName}}));
-                    public override string ToString() => Name;
+                    {{data.GetDescriptionFieldDeclaration()}}                                        
+                    {{GenerateEqualityComparer(data)}}
+
+                    public override string ToString() => Name;    
                     
-                    {{GenerateEqualityComparer(classSymbol)}}
-                   
-                    public static IReadOnlyCollection<{{className}}> GetAll() => ValueByNameMap.Values;
+                    public static IReadOnlyCollection<{{data.ClassName}}> GetAll() => ValueByNameMap.Values;
                         
-                    public static IEnumerable<{{className}}> GetByName(IEnumerable<string> names)
+                    public static IEnumerable<{{data.ClassName}}> GetByName(IEnumerable<string> names)
                         => names.Select(GetByName).Where(p => p.IsEmpty == false);
 
-                    public static {{className}} GetByName(string name)
+                    public static {{data.ClassName}} GetByName(string name)
                     {
                         return ValueByNameMap.TryGetValue(name, out var value)
                             ? value
                             : Empty;
                     }
-                    public static implicit operator {{className}}(string name) => GetByName(name);
-                    public static implicit operator string({{className}} value) => value.Name;
-                    public static implicit operator {{fullEnumTypeName}}({{className}} value) => value.Value;
-                    public static implicit operator {{className}}({{fullEnumTypeName}} value) => GetByName(value.ToString());
-                    public static implicit operator {{enumUnderlyingTypeName}}({{className}} value) => ({{enumUnderlyingTypeName}}) value.Value;
+                    public static implicit operator {{data.ClassName}}(string name) => GetByName(name);
+                    public static implicit operator string({{data.ClassName}} value) => value.Name;
+                    public static implicit operator {{data.EnumTypeFullName}}({{data.ClassName}} value) => value.Value;
+                    public static implicit operator {{data.ClassName}}({{data.EnumTypeFullName}} value) => GetByName(value.ToString());
+                    public static implicit operator {{data.EnumTypeUnderlyingTypeName}}({{data.ClassName}} value) => ({{data.EnumTypeUnderlyingTypeName}}) value.Value;
                 }
             }
             """;
         return code;
     }
-    private static string GenerateEqualityComparer(INamedTypeSymbol classSymbol)
+    private static string GenerateEqualityComparer(EnumToClassData classSymbol)
     {
-        if (classSymbol.IsRecord)
+        return classSymbol switch
         {
-            return "";
-        }
-        return $$"""
-                    public override bool Equals(object? obj)
-                    {
-                        return obj is {{classSymbol.Name}} element
-                            ? element.Value == Value
-                            : base.Equals(obj);
-                    }
-                    public override int GetHashCode() => Value.GetHashCode();
-            """;
+            { IsRecord: true } => "",
+            _ => $$"""
+                   public override bool Equals(object? obj)
+                   {
+                       return obj is {{classSymbol.ClassName}} element
+                           ? element.Value == Value
+                           : base.Equals(obj);
+                   }
+                   public override int GetHashCode() => Value.GetHashCode();
+                   """
+        };
     }
-    private static string GenerateCodeForEnumMembers(INamedTypeSymbol classSymbol, ITypeSymbol enumType)
+    private static string GenerateCodeForEnumMembers(EnumToClassData data)
     {
-        var namespaceName = classSymbol.ContainingNamespace.ToDisplayString();
-        var className = classSymbol.Name;
-        var fullEnumTypeName = GetFullEnumTypeName(enumType);
-        var enumMembers = enumType
-            .GetMembers()
-            .Where(m => m.Kind == SymbolKind.Field)
-            .Cast<IFieldSymbol>();
+        string className = data.ClassName;
 
         return $$"""
             //<auto-generated />     
@@ -164,39 +120,32 @@ public class EnumToClassGenerator : IIncrementalGenerator
             using System.Collections.ObjectModel;
             #nullable enable
 
-            namespace {{namespaceName}}
+            namespace {{data.ClassNamespace}}
             {
-                {{GetPartialDeclaration(classSymbol)}}            
+                {{data.ClassPartialDeclaration}}            
                 {
                     private static readonly ReadOnlyDictionary<string, {{className}}> ValueByNameMap = new ReadOnlyDictionary<string, {{className}}>(new Dictionary<string, {{className}}>()
                     {
-                        {{string.Join($",{EndOfLine}            ", ToDictionaryEntries(enumMembers, className, fullEnumTypeName))}}
-                    });                        
-                    {{string.Join($"{EndOfLine}        ", ToConstDeclaration(enumMembers))}}
+                        {{string.Join($",{EndOfLine}            ", ToDictionaryEntries(data))}}
+                    });
+                    {{string.Join($"{EndOfLine}        ", ToConstDeclaration(data))}}
                 }
             }
             """;
     }
-    private static IEnumerable<string> ToDictionaryEntries(IEnumerable<IFieldSymbol> enumMembers, string className, string fullEnumTypeName)
+    private static IEnumerable<string> ToDictionaryEntries(EnumToClassData data)
     {
-
-        foreach (var member in enumMembers)
+        foreach (var member in data.EnumFields)
         {
-            yield return $"""["{member.Name}"] = new {className}({member.ToDisplayString()})""";
+            yield return $"""["{member.Name}"] = {data.GetClassContruction(member)}""";
         }
     }
-    private static IEnumerable<string> ToConstDeclaration(IEnumerable<IFieldSymbol> enumMembers)
+    private static IEnumerable<string> ToConstDeclaration(EnumToClassData data)
     {
-        foreach (var member in enumMembers)
+        foreach (var member in data.EnumFields)
         {
-            yield return member.GetMemberDocumentationComment();
+            yield return member.DocumentationComment ?? "";
             yield return $"public const string {member.Name} = \"{member.Name}\";";
         }
     }
-
-
-    private static string GetPartialDeclaration(INamedTypeSymbol symbol)
-        => $"{symbol.GetAccessibility()} partial {(symbol.IsRecord ? "record" : "class")} {symbol.Name}";
-
-    private static string GetFullEnumTypeName(ITypeSymbol enumType) => enumType.ToDisplayString();
 }

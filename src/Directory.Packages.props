@@ -3,11 +3,12 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup Label="Main">
-    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />    
+    <PackageVersion Include="GitHubActionsTestLogger" Version="2.4.1" />
     <PackageVersion Include="IsExternalInit" Version="1.0.3" />
-    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />    
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.11.0" />
     <PackageVersion Include="ConventionalCommitsGitInfo" Version="0.3.6" />
     <PackageVersion Include="DotNet.ReproducibleBuilds" Version="1.2.4" />
     <PackageVersion Include="MinVer" Version="6.0.0" />
-  </ItemGroup>  
+    <PackageVersion Include="PolySharp" Version="1.14.1" />
+  </ItemGroup>
 </Project>

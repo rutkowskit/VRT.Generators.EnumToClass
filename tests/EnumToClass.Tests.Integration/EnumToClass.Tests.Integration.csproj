@@ -4,24 +4,20 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-
 		<IsPackable>false</IsPackable>
 		<IsTestProject>true</IsTestProject>
 	</PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="coverlet.collector" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" />
-		<PackageReference Include="xunit" />
-		<PackageReference Include="xunit.runner.visualstudio" />
-		<PackageReference Include="FluentAssertions" />
+	<Import Project="..\..\src\EnumToClass\EnumToClass.props" />
+
+	<ItemGroup>		
+		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />		
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\EnumToClass.Attributes\EnumToClass.Attributes.csproj" OutputItemType="Analyzer" />
-		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false"/>
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<Using Include="Xunit" />
 	</ItemGroup>

@@ -1,4 +1,4 @@
-﻿namespace EnumToClass;
+﻿namespace EnumToClass.Helpers;
 
 internal static class TypeExtensions
 {

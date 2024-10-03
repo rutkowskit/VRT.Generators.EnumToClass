@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Net;
-using VRT.Generators.EnumToClass;
 
 namespace EnumToClass.Tests.Integration;
 
@@ -19,7 +18,9 @@ public enum TestElements
     /// </summary>
     Element2,
     [Description("This is element 3 of the test enum")]
+
     Element3,
+
 
     /// <summary>
     /// This test element calculates the factorial of a given non-negative integer.
@@ -27,8 +28,7 @@ public enum TestElements
     /// <remarks>
     /// The factorial of a number \( n \) is the product of all positive integers less than or equal to \( n \).
     /// For example, <c>factorial(5)</c> returns <c>120</c>.
-    /// </remarks>
-    /// <param name="number">
+    /// </remarks>    
     /// A non-negative integer whose factorial is to be calculated.
     /// This parameter must be greater than or equal to 0.
     /// </param>
@@ -48,19 +48,31 @@ public enum TestElements
     /// </code>
     /// </example>
     Element4,
+
+    /// <summary>
+    /// This is a fifth element.
+    /// Multiline comment
+    /// </summary>
+    /// <remarks>
+    /// A fifth element
+    /// For example, <c>xxx(5)</c> returns <c>120</c>.
+    /// </remarks>    
+    [Description("The fifth element")]
+    Element5,
+    Element6,
 }
 
-[EnumToClass<TestElements>]
+[VRT.Generators.EnumToClass.EnumToClass<TestElements>]
 internal sealed partial class TestElementClass
 {
 }
 
-[EnumToClass<TestElements>]
+[VRT.Generators.EnumToClass.EnumToClass<TestElements>(WithDescription = true)]
 public sealed partial record TestElementRecord
 {
 }
 
-[EnumToClass<HttpResponseHeader>]
+[VRT.Generators.EnumToClass.EnumToClass<HttpResponseHeader>]
 public sealed partial class HttpResponseHeaderClass
 {
 }

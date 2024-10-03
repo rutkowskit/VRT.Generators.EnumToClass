@@ -3,6 +3,29 @@
 Enum to class generator generates smart enum class containing constant strings equivalent to enum names.
 The class decorated with `EnumToClassAttribute` becomes closed type with private constructor and `readonly` properties.
 
+## Attribute declaration
+
+```cs
+/// <summary>
+/// Generates const string values for each enum field.
+/// Makes class/record decorated with the attribute a closed type.
+/// </summary>
+/// <typeparam name="T">Enum type parameter</typeparam>
+[global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = false)]
+[global::System.Diagnostics.Conditional("ENUM_TO_CLASS_GENERATOR_ATTRIBUTES")]
+internal sealed class EnumToClassAttribute<T> : global::System.Attribute
+    where T : global::System.Enum
+{
+    public bool WithDescription { get; set; }
+}
+```
+
+### Optional properties
+  
+1. `WithDescription` - when set to `true` it will generate a `Description` property. The value of this property will be set to:
+    a. `DescriptionAttribute` if it is present for the enum field
+    a. Documentation comment `Summary` if it is present for the enum field
+    a. String representation of the  
 ## Usage
 
 ```cs
@@ -108,6 +131,9 @@ namespace EnumToClass.Tests.Integration
 }
 ```
 ## Change Log
+
+### Version 1.0.6
+1. Add optional description property generation
 
 ### Version 1.0.5
 1. Add documentation comments based on `DescriptionAttribute` value.

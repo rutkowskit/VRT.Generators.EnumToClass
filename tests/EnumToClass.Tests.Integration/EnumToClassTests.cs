@@ -102,4 +102,26 @@ public sealed class EnumToClassTests
         var a = Enum.GetValues<HttpResponseHeader>();
         HttpResponseHeaderClass.GetAll().Should().HaveCount(a.Length);
     }
+
+    [Theory]
+    [InlineData(typeof(TestElementRecord), true)]
+    [InlineData(typeof(TestElementClass), false)]
+    public void Generated_WithDescriptionTests(Type classType, bool shouldHaveDescription)
+    {
+        var propertyInfo = classType.GetProperties().FirstOrDefault(p => p.Name == "Description");
+        (propertyInfo is not null).Should().Be(shouldHaveDescription);
+    }
+
+    [Theory]
+    [InlineData(TestElements.None, "Empty element")]
+    [InlineData(TestElements.Element1, "First element of enum")]
+    [InlineData(TestElements.Element3, "This is element 3 of the test enum")]
+    [InlineData(TestElements.Element4, "This test element calculates the factorial of a given non-negative integer.")]
+    [InlineData(TestElements.Element5, "The fifth element")]
+    [InlineData(TestElements.Element6, nameof(TestElements.Element6))]
+    public void Generated_WithDescription_ShouldHaveCorrectDescription(TestElements element, string expectedDescription)
+    {
+        TestElementRecord sut = element;
+        sut.Description.Should().Be(expectedDescription);
+    }
 }

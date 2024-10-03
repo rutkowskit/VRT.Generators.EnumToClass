@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<IsPackable>false</IsPackable>
+		<IsTestProject>true</IsTestProject>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Verify.SourceGenerators" />
+		<PackageReference Include="Verify.Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>		
+		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj"/>		
+	</ItemGroup>
+
+	<ItemGroup>
+		<Using Include="Xunit" />
+	</ItemGroup>
+
+</Project>
