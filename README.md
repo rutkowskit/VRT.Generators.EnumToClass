@@ -21,11 +21,12 @@ internal sealed class EnumToClassAttribute<T> : global::System.Attribute
 ```
 
 ### Optional properties
-  
+
+  
 1. `WithDescription` - when set to `true` it will generate a `Description` property. The value of this property will be set to:
     a. `DescriptionAttribute` if it is present for the enum field
     a. Documentation comment `Summary` if it is present for the enum field
-    a. String representation of the  
+    a. String representation of the enum value
 ## Usage
 
 ```cs
