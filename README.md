@@ -133,6 +133,9 @@ namespace EnumToClass.Tests.Integration
 ```
 ## Change Log
 
+### Version 1.0.7
+1. Add implicit operator to convert underlying enum type value to class type.
+
 ### Version 1.0.6
 1. Add optional description property generation
 

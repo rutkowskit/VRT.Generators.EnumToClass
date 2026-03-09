@@ -89,6 +89,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
                     public static implicit operator {{data.EnumTypeFullName}}({{data.ClassName}} value) => value.Value;
                     public static implicit operator {{data.ClassName}}({{data.EnumTypeFullName}} value) => GetByName(value.ToString());
                     public static implicit operator {{data.EnumTypeUnderlyingTypeName}}({{data.ClassName}} value) => ({{data.EnumTypeUnderlyingTypeName}}) value.Value;
+                    public static implicit operator {{data.ClassName}}({{data.EnumTypeUnderlyingTypeName}} value) => ({{data.EnumTypeFullName}})value;
                 }
             }
             """;

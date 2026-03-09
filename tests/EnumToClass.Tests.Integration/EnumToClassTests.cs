@@ -70,6 +70,21 @@ public sealed class EnumToClassTests
         underyingTypeValue.Should().Be(expectedValue);
     }
 
+    [Theory]
+    [InlineData(0, TestElements.None, true)]
+    [InlineData(1, TestElements.Element1)]
+    [InlineData(2, TestElements.Element2)]
+    [InlineData(3, TestElements.Element3)]
+    public void Generated_ImplicitUnderlyingEnumTypeToClassConversionTests(
+        int value,
+        TestElements expectedEnumValue,
+        bool expectedIsEmpty = false)
+    {
+        TestElementClass sut = value;
+        sut.Value.Should().Be(expectedEnumValue);
+        sut.IsEmpty.Should().Be(expectedIsEmpty);
+    }
+
 
     [Fact]
     public void Equals_WhenSameElementClasses_ShouldBeTrue()

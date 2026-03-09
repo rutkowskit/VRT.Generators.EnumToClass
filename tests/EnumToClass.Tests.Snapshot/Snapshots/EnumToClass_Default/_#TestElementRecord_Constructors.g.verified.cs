@@ -42,5 +42,6 @@ namespace VRT.Generators.Tests
         public static implicit operator VRT.Generators.Tests.TestElements(TestElementRecord value) => value.Value;
         public static implicit operator TestElementRecord(VRT.Generators.Tests.TestElements value) => GetByName(value.ToString());
         public static implicit operator int(TestElementRecord value) => (int) value.Value;
+        public static implicit operator TestElementRecord(int value) => (VRT.Generators.Tests.TestElements)value;
     }
 }
