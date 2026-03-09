@@ -128,13 +128,14 @@ namespace EnumToClass.Tests.Integration
         public static implicit operator Integration.TestElements(TestElementClass value) => value.Value;
         public static implicit operator TestElementClass(Integration.TestElements value) => GetByName(value.ToString());
         public static implicit operator int(TestElementClass value) => (int) value.Value;
+        public static implicit operator TestElementClass(int value) => (Integration.TestElements)value;
     }
 }
 ```
 ## Change Log
 
 ### Version 1.0.7
-1. Add implicit operator to convert underlying enum type value to class type.
+1. Add implicit operator to convert `underlying enum type` value to `Class type`.
 
 ### Version 1.0.6
 1. Add optional description property generation
