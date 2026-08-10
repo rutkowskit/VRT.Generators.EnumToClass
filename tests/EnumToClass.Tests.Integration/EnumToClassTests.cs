@@ -139,4 +139,17 @@ public sealed class EnumToClassTests
         TestElementRecord sut = element;
         sut.Description.Should().Be(expectedDescription);
     }
+
+
+    [Fact]
+
+    public void Generated_WhenTestElementClass_ShouldContainInstanceStaticFields()
+    {
+        TestElementClass.Element1Instance.Value.Should().Be(TestElements.Element1);
+        TestElementClass.Element2Instance.Value.Should().Be(TestElements.Element2);
+        TestElementClass.Element3Instance.Value.Should().Be(TestElements.Element3);
+        TestElementClass.Element4Instance.Value.Should().Be(TestElements.Element4);
+        TestElementClass.Element5Instance.Value.Should().Be(TestElements.Element5);
+        TestElementClass.Element6Instance.Value.Should().Be(TestElements.Element6);
+    }
 }

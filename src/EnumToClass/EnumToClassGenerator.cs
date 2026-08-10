@@ -130,6 +130,8 @@ public class EnumToClassGenerator : IIncrementalGenerator
                         {{string.Join($",{EndOfLine}            ", ToDictionaryEntries(data))}}
                     });
                     {{string.Join($"{EndOfLine}        ", ToConstDeclaration(data))}}
+
+                    {{string.Join($"{EndOfLine}        ", ToInstanceDeclaration(data))}}
                 }
             }
             """;
@@ -141,12 +143,22 @@ public class EnumToClassGenerator : IIncrementalGenerator
             yield return $"""["{member.Name}"] = {data.GetClassContruction(member)}""";
         }
     }
+
     private static IEnumerable<string> ToConstDeclaration(EnumToClassData data)
     {
         foreach (var member in data.GetEnumFields())
         {
             yield return member.DocumentationComment ?? "";
             yield return $"public const string {member.Name} = \"{member.Name}\";";
+        }
+    }
+
+    private static IEnumerable<string> ToInstanceDeclaration(EnumToClassData data)
+    {
+        foreach (var member in data.GetEnumFields())
+        {
+            yield return member.DocumentationComment ?? "";
+            yield return $"public static {data.ClassName} {member.Name}Instance {{get;}} = ValueByNameMap[\"{member.Name}\"];";
         }
     }
 }
