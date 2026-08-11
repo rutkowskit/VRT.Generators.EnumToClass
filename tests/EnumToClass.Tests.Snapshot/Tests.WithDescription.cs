@@ -58,4 +58,76 @@ public sealed partial class Tests
             """;
         return CheckSourceCode<EnumToClassGenerator>(sourceCode);
     }
+
+    [Fact]
+    public Task EnumToClass_WithEscapedDescription()
+    {
+        var sourceCode = """
+            using System.ComponentModel;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            public enum SpecialElements
+            {
+                [Description("He said \"hi\"\nand left")]
+                Quoted,
+                [Description("plain")]
+                Plain = 1,
+            }
+
+            [EnumToClass<SpecialElements>(WithDescription = true)]
+            public sealed partial class SpecialElementClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
+    public Task EnumToClass_NonZeroFirstMember()
+    {
+        var sourceCode = """
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            public enum NonZeroFirst
+            {
+                Alpha = 1,
+                Beta = 2,
+                Zero = 0,
+            }
+
+            [EnumToClass<NonZeroFirst>]
+            public sealed partial class NonZeroFirstClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
+    public Task EnumToClass_NonPartial_ReportsETC001()
+    {
+        var sourceCode = """
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            public enum SimpleEnum
+            {
+                A,
+                B,
+            }
+
+            [EnumToClass<SimpleEnum>]
+            public sealed class NotPartialClass
+            {
+            }
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
 }

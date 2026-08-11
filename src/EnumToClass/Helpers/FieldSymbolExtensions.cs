@@ -100,9 +100,9 @@ internal static class FieldSymbolExtensions
                 return summaryElement.Value.Trim();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"Error parsing XML documentation: {ex.Message}");
+            // Invalid XML documentation — fall back to empty summary (no console I/O in generators).
         }
 
         return string.Empty;

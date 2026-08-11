@@ -1,4 +1,4 @@
-﻿using EnumToClass.Helpers;
+using EnumToClass.Helpers;
 using Microsoft.CodeAnalysis;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -22,6 +22,13 @@ internal sealed record EnumToClassData
             return null;
         }
 
+        var fields = enumTypeSymbol
+            .GetMembers()
+            .Select(EnumFieldData.FromSymbol)
+            .Where(static f => f is not null)
+            .Select(static f => f!)
+            .ToArray();
+
         var result = new EnumToClassData
         {
             EnumTypeFullName = enumTypeSymbol.ToDisplayString(),
@@ -31,13 +38,10 @@ internal sealed record EnumToClassData
             GenerateDescription = attributeData
                 .TryGetNamedArgument<bool>(EnumToClassAttributeDefinition.WithDescriptionPropertyName, out var withDescription) && withDescription,
             IsRecord = classWithAttribute.IsRecord,
+            IsPartial = classWithAttribute.IsDeclaredPartial(),
+            Location = classWithAttribute.Locations.FirstOrDefault() ?? Location.None,
             ClassPartialDeclaration = classWithAttribute.GetPartialDeclaration(),
-            _enumFields = enumTypeSymbol
-                .GetMembers()
-                .Select(EnumFieldData.FromSymbol)
-                .Where(f => f is not null)
-                .Select(f => f!)
-                .ToArray()
+            _enumFields = fields
         };
         return result;
     }
@@ -48,8 +52,16 @@ internal sealed record EnumToClassData
     public string ClassNamespace { get; private set; } = default!;
     public bool GenerateDescription { get; private set; }
     public bool IsRecord { get; private set; }
+    public bool IsPartial { get; private set; }
+    public Location Location { get; private set; } = Location.None;
 
     public IReadOnlyCollection<EnumFieldData> GetEnumFields() => _enumFields;
+
+    /// <summary>
+    /// Named enum member whose constant value equals default(TEnum), if any.
+    /// </summary>
+    public EnumFieldData? DefaultEnumField => GetEnumFields().FirstOrDefault(static f => f.IsDefaultValue);
+
     public string GetConstructorDeclaration()
     {
         return GenerateDescription
@@ -64,18 +76,40 @@ internal sealed record EnumToClassData
     {
         return GenerateDescription ? "Description = description;" : "";
     }
-    public string GetClassContruction(EnumFieldData member)
+    public string GetClassConstruction(EnumFieldData member)
     {
         return GenerateDescription
-            ? $"new {ClassName}({member.FullName},\"{member.Description ?? member.Name}\")"
+            ? $"new {ClassName}({member.FullName}, {CodeLiteral.String(member.Description ?? member.Name)})"
             : $"new {ClassName}({member.FullName})";
     }
+
+    /// <summary>
+    /// Empty must share identity with the map entry for default(TEnum) when that value is a named member;
+    /// otherwise a single shared instance for default(TEnum). Emitted next to ValueByNameMap (Constants file).
+    /// </summary>
     public string GetEmptyItemDefinition()
     {
-        var firstEnumField = GetEnumFields().FirstOrDefault();
-        return firstEnumField is null
-            ? ""
-            : $"public static {ClassName} Empty {{ get; }} = {GetClassContruction(firstEnumField)};";
+        var defaultField = DefaultEnumField;
+        if (defaultField is not null)
+        {
+            return $"public static {ClassName} Empty {{ get; }} = ValueByNameMap[{CodeLiteral.String(defaultField.Name)}];";
+        }
+
+        // No named member for default — one shared instance (not duplicated on each miss).
+        return GenerateDescription
+            ? $"public static {ClassName} Empty {{ get; }} = new {ClassName}(default({EnumTypeFullName}), {CodeLiteral.String(string.Empty)});"
+            : $"public static {ClassName} Empty {{ get; }} = new {ClassName}(default({EnumTypeFullName}));";
+    }
+
+    public string GetPartialDeclarationWithInterfaces()
+    {
+        if (IsRecord)
+        {
+            return ClassPartialDeclaration;
+        }
+
+        // IEquatable on the generated partial so ==/Equals share a single contract for class hosts.
+        return $"{ClassPartialDeclaration} : global::System.IEquatable<{ClassName}>";
     }
 
     public sealed record EnumFieldData
@@ -92,8 +126,16 @@ internal sealed record EnumToClassData
         public string FullName { get; private set; } = default!;
         public string? Description { get; private set; }
         public string? DocumentationComment { get; private set; }
-        private static EnumFieldData FromFieldSymbol(IFieldSymbol fieldSymbol)
+        public bool IsDefaultValue { get; private set; }
+
+        private static EnumFieldData? FromFieldSymbol(IFieldSymbol fieldSymbol)
         {
+            // Enum members only (excludes instance field value__ from metadata enums).
+            if (fieldSymbol.IsStatic is false || fieldSymbol.HasConstantValue is false)
+            {
+                return null;
+            }
+
             var documentationComment = fieldSymbol.GetMemberDocumentationComment();
             var result = new EnumFieldData()
             {
@@ -102,10 +144,30 @@ internal sealed record EnumToClassData
                 Description = fieldSymbol.GetDescriptionAttributeValue()
                     ?? GetCommentSummary(documentationComment)
                     ?? fieldSymbol.Name,
-                DocumentationComment = documentationComment
+                DocumentationComment = documentationComment,
+                IsDefaultValue = IsDefaultEnumConstant(fieldSymbol.ConstantValue)
             };
             return result;
         }
+
+        private static bool IsDefaultEnumConstant(object? constantValue)
+        {
+            return constantValue switch
+            {
+                null => false,
+                byte b => b == 0,
+                sbyte sb => sb == 0,
+                short s => s == 0,
+                ushort us => us == 0,
+                int i => i == 0,
+                uint ui => ui == 0,
+                long l => l == 0,
+                ulong ul => ul == 0,
+                char c => c == 0,
+                _ => false
+            };
+        }
+
         private static string? GetCommentSummary(string? documentationComment)
         {
             var result = documentationComment?

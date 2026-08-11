@@ -2,7 +2,7 @@
 
 	<PropertyGroup>
 		<TargetFramework>netstandard2.0</TargetFramework>		
-		<NoWarn>$(NoWarn);CA1014;CA1308;CA1031;CA1307</NoWarn>
+		<NoWarn>$(NoWarn);CA1014;CA1308;CA1031;CA1307;RS2008</NoWarn>
 		<IsRoslynComponent>true</IsRoslynComponent>
 		<EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>		

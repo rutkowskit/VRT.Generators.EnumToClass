@@ -1,4 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EnumToClass.Helpers;
 
@@ -6,6 +8,21 @@ internal static class NamedTypeSymbolExtensions
 {
     public static string GetPartialDeclaration(this INamedTypeSymbol symbol)
         => $"{symbol.GetAccessibility()} partial {(symbol.IsRecord ? "record" : "class")} {symbol.Name}";
+
+    public static bool IsDeclaredPartial(this INamedTypeSymbol symbol)
+    {
+        foreach (var reference in symbol.DeclaringSyntaxReferences)
+        {
+            if (reference.GetSyntax() is TypeDeclarationSyntax typeDecl &&
+                typeDecl.Modifiers.Any(SyntaxKind.PartialKeyword))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public static string GetAccessibility(this INamedTypeSymbol typeSymbol)
     {
         return typeSymbol.DeclaredAccessibility switch
