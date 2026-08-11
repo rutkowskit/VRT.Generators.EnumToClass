@@ -7,7 +7,13 @@ namespace VRT.Generators;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 internal sealed record EnumToClassData
 {
+    private static readonly SymbolDisplayFormat FullyQualified =
+        SymbolDisplayFormat.FullyQualifiedFormat;
+
     private IReadOnlyCollection<EnumFieldData> _enumFields = [];
+    private IReadOnlyList<AttributePropertyProjection> _attributeProperties = [];
+    private IReadOnlyList<PendingDiagnostic> _pendingDiagnostics = [];
+
     public static EnumToClassData? FromClass(INamedTypeSymbol? classWithAttribute)
     {
         var attributeData = classWithAttribute?.GetAttribute(
@@ -23,9 +29,11 @@ internal sealed record EnumToClassData
             return null;
         }
 
+        var (projections, pendingDiagnostics) = CollectAttributePropertyProjections(classWithAttribute);
+
         var fields = enumTypeSymbol
             .GetMembers()
-            .Select(EnumFieldData.FromSymbol)
+            .Select(m => EnumFieldData.FromSymbol(m, projections, pendingDiagnostics))
             .Where(static f => f is not null)
             .Select(static f => f!)
             .ToArray();
@@ -44,10 +52,13 @@ internal sealed record EnumToClassData
             ContainingTypeName = classWithAttribute.ContainingType?.ToDisplayString() ?? string.Empty,
             Location = classWithAttribute.Locations.FirstOrDefault() ?? Location.None,
             ClassPartialDeclaration = classWithAttribute.GetPartialDeclaration(),
-            _enumFields = fields
+            _enumFields = fields,
+            _attributeProperties = projections,
+            _pendingDiagnostics = pendingDiagnostics
         };
         return result;
     }
+
     public string EnumTypeFullName { get; private set; } = default!;
     public string EnumTypeUnderlyingTypeName { get; private set; } = "int";
     public string ClassName { get; private set; } = default!;
@@ -61,6 +72,91 @@ internal sealed record EnumToClassData
     public Location Location { get; private set; } = Location.None;
 
     public IReadOnlyCollection<EnumFieldData> GetEnumFields() => _enumFields;
+    public IReadOnlyList<AttributePropertyProjection> AttributeProperties => _attributeProperties;
+    public IReadOnlyList<PendingDiagnostic> PendingDiagnostics => _pendingDiagnostics;
+    public bool HasAttributeProperties => _attributeProperties.Count > 0;
+
+    private static (IReadOnlyList<AttributePropertyProjection> Projections, List<PendingDiagnostic> Diagnostics)
+        CollectAttributePropertyProjections(INamedTypeSymbol host)
+    {
+        var diagnostics = new List<PendingDiagnostic>();
+        var projections = new List<AttributePropertyProjection>();
+        var seenAttributeTypes = new HashSet<string>(StringComparer.Ordinal);
+        var seenPropertyNames = new HashSet<string>(StringComparer.Ordinal);
+
+        foreach (var attr in host.GetAttributes())
+        {
+            if (!IsEnumToClassPropertyAttribute(attr.AttributeClass))
+            {
+                continue;
+            }
+
+            if (attr.AttributeClass!.TypeArguments.Length != 1 ||
+                attr.AttributeClass.TypeArguments[0] is not INamedTypeSymbol attributeType)
+            {
+                continue;
+            }
+
+            var attributeTypeFullName = attributeType.ToDisplayString(FullyQualified);
+            if (!seenAttributeTypes.Add(attributeTypeFullName))
+            {
+                diagnostics.Add(new PendingDiagnostic(
+                    EnumToClassDiagnostics.DuplicateAttributeProperty.Id,
+                    attributeType.ToDisplayString()));
+                continue;
+            }
+
+            var propertyName = ResolvePropertyName(attr, attributeType.Name);
+            if (!PropertyNameHelper.IsValidIdentifier(propertyName))
+            {
+                diagnostics.Add(new PendingDiagnostic(
+                    EnumToClassDiagnostics.AttributePropertyNameInvalid.Id,
+                    $"Property name '{propertyName}' for attribute '{attributeType.ToDisplayString()}' is not a valid C# identifier."));
+                continue;
+            }
+
+            if (!seenPropertyNames.Add(propertyName))
+            {
+                diagnostics.Add(new PendingDiagnostic(
+                    EnumToClassDiagnostics.AttributePropertyNameInvalid.Id,
+                    $"Property name '{propertyName}' is used by more than one EnumToClassPropertyAttribute."));
+                continue;
+            }
+
+            projections.Add(new AttributePropertyProjection(
+                attributeTypeFullName: attributeTypeFullName,
+                propertyTypeDisplayName: attributeTypeFullName,
+                propertyName: propertyName,
+                accessibility: attributeType.GetAccessibility() is { Length: > 0 } acc ? acc : "public"));
+        }
+
+        return (projections, diagnostics);
+    }
+
+    private static string ResolvePropertyName(AttributeData enumToClassPropertyAttr, string attributeTypeName)
+    {
+        if (enumToClassPropertyAttr.TryGetNamedArgument<string>(
+                EnumToClassAttributeDefinition.PropertyAttributeNamePropertyName,
+                out var name) &&
+            string.IsNullOrWhiteSpace(name) is false)
+        {
+            return name.Trim();
+        }
+
+        return PropertyNameHelper.FromAttributeTypeName(attributeTypeName);
+    }
+
+    private static bool IsEnumToClassPropertyAttribute(INamedTypeSymbol? attributeClass)
+    {
+        if (attributeClass is null)
+        {
+            return false;
+        }
+
+        return attributeClass.Name == EnumToClassAttributeDefinition.PropertyAttributeTypeName &&
+               attributeClass.ContainingNamespace.ToDisplayString() == EnumToClassAttributeDefinition.NamespaceName &&
+               attributeClass.Arity == 1;
+    }
 
     /// <summary>
     /// Named enum member whose constant value equals default(TEnum), if any.
@@ -117,23 +213,83 @@ internal sealed record EnumToClassData
         return $"{ClassPartialDeclaration} : global::System.IEquatable<{ClassName}>";
     }
 
+    /// <summary>
+    /// One <c>[EnumToClassProperty&lt;T&gt;]</c> projection on the host.
+    /// </summary>
+    public sealed class AttributePropertyProjection
+    {
+        public AttributePropertyProjection(
+            string attributeTypeFullName,
+            string propertyTypeDisplayName,
+            string propertyName,
+            string accessibility)
+        {
+            AttributeTypeFullName = attributeTypeFullName;
+            PropertyTypeDisplayName = propertyTypeDisplayName;
+            PropertyName = propertyName;
+            Accessibility = accessibility;
+        }
+
+        public string AttributeTypeFullName { get; }
+        public string PropertyTypeDisplayName { get; }
+        public string PropertyName { get; }
+        public string Accessibility { get; }
+    }
+
+    /// <summary>
+    /// Per-member value for a projected attribute property (<see cref="CreationExpression"/> null ⇒ assign null).
+    /// </summary>
+    public sealed class AttributePropertyAssignment
+    {
+        public AttributePropertyAssignment(string propertyName, string? creationExpression)
+        {
+            PropertyName = propertyName;
+            CreationExpression = creationExpression;
+        }
+
+        public string PropertyName { get; }
+        public string? CreationExpression { get; }
+    }
+
+    public sealed class PendingDiagnostic
+    {
+        public PendingDiagnostic(string descriptorId, params string[] messageArgs)
+        {
+            DescriptorId = descriptorId;
+            MessageArgs = messageArgs ?? [];
+        }
+
+        public string DescriptorId { get; }
+        public string[] MessageArgs { get; }
+    }
+
     public sealed record EnumFieldData
     {
-        public static EnumFieldData? FromSymbol(ISymbol symbol)
+        private IReadOnlyList<AttributePropertyAssignment> _attributeAssignments = [];
+
+        public static EnumFieldData? FromSymbol(
+            ISymbol symbol,
+            IReadOnlyList<AttributePropertyProjection> projections,
+            List<PendingDiagnostic> diagnostics)
         {
             return symbol switch
             {
-                IFieldSymbol fieldSymbol => FromFieldSymbol(fieldSymbol),
+                IFieldSymbol fieldSymbol => FromFieldSymbol(fieldSymbol, projections, diagnostics),
                 _ => null
             };
         }
+
         public string Name { get; private set; } = default!;
         public string FullName { get; private set; } = default!;
         public string? Description { get; private set; }
         public string? DocumentationComment { get; private set; }
         public bool IsDefaultValue { get; private set; }
+        public IReadOnlyList<AttributePropertyAssignment> AttributeAssignments => _attributeAssignments;
 
-        private static EnumFieldData? FromFieldSymbol(IFieldSymbol fieldSymbol)
+        private static EnumFieldData? FromFieldSymbol(
+            IFieldSymbol fieldSymbol,
+            IReadOnlyList<AttributePropertyProjection> projections,
+            List<PendingDiagnostic> diagnostics)
         {
             // Enum members only (excludes instance field value__ from metadata enums).
             if (fieldSymbol.IsStatic is false || fieldSymbol.HasConstantValue is false)
@@ -150,9 +306,63 @@ internal sealed record EnumToClassData
                     ?? GetCommentSummary(documentationComment)
                     ?? fieldSymbol.Name,
                 DocumentationComment = documentationComment,
-                IsDefaultValue = IsDefaultEnumConstant(fieldSymbol.ConstantValue)
+                IsDefaultValue = IsDefaultEnumConstant(fieldSymbol.ConstantValue),
+                _attributeAssignments = BuildAttributeAssignments(fieldSymbol, projections, diagnostics)
             };
             return result;
+        }
+
+        private static IReadOnlyList<AttributePropertyAssignment> BuildAttributeAssignments(
+            IFieldSymbol fieldSymbol,
+            IReadOnlyList<AttributePropertyProjection> projections,
+            List<PendingDiagnostic> diagnostics)
+        {
+            if (projections.Count == 0)
+            {
+                return [];
+            }
+
+            var fieldAttributes = fieldSymbol.GetAttributes();
+            var list = new List<AttributePropertyAssignment>(projections.Count);
+
+            foreach (var projection in projections)
+            {
+                AttributeData? match = null;
+                foreach (var candidate in fieldAttributes)
+                {
+                    if (candidate.AttributeClass is null)
+                    {
+                        continue;
+                    }
+
+                    if (candidate.AttributeClass.ToDisplayString(FullyQualified) == projection.AttributeTypeFullName)
+                    {
+                        match = candidate;
+                        break;
+                    }
+                }
+
+                if (match is null)
+                {
+                    list.Add(new AttributePropertyAssignment(projection.PropertyName, creationExpression: null));
+                    continue;
+                }
+
+                if (AttributeConstructionEmitter.TryFormat(match, out var expression, out var error))
+                {
+                    list.Add(new AttributePropertyAssignment(projection.PropertyName, expression));
+                }
+                else
+                {
+                    diagnostics.Add(new PendingDiagnostic(
+                        EnumToClassDiagnostics.AttributePropertyNotConstructible.Id,
+                        projection.AttributeTypeFullName,
+                        error ?? "unknown error"));
+                    list.Add(new AttributePropertyAssignment(projection.PropertyName, creationExpression: null));
+                }
+            }
+
+            return list;
         }
 
         private static bool IsDefaultEnumConstant(object? constantValue)

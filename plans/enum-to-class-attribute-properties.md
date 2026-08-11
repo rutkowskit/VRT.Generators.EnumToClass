@@ -179,19 +179,19 @@ Mark checkboxes; write Phase Summary when complete; **propose commit message onl
 When **this entire plan** is Complete: remove plan details/phase noise from `AGENTS.md`; keep only backlog leftovers with a link to this plan file if needed (see AGENTS process: plans vs this file).
 
 ## Phase 1: Attribute definition + model
-Status: Not started
+Status: Complete
 
-- [ ] Emit `EnumToClassPropertyAttribute<TAttribute>` via post-initialization (`Conditional`, same namespace as `EnumToClassAttribute`).
-- [ ] Discover host applications; resolve `T`, `Name`, default property name (strip `Attribute`).
-- [ ] Validate duplicates / name collisions / invalid identifiers → diagnostics (may land fully in Phase 3).
-- [ ] Per enum member: find matching `AttributeData` for each `T`; store creation expr or null.
-- [ ] Wire into `EnumToClassData` without changing behavior when no projections.
+- [x] Emit `EnumToClassPropertyAttribute<TAttribute>` via post-initialization (`Conditional`, same namespace as `EnumToClassAttribute`).
+- [x] Discover host applications; resolve `T`, `Name`, default property name (strip `Attribute`).
+- [x] Validate duplicates / name collisions / invalid identifiers → diagnostics (ETC011/ETC012; ETC010 on non-constructible).
+- [x] Per enum member: find matching `AttributeData` for each `T`; store creation expr or null.
+- [x] Wire into `EnumToClassData` without changing behavior when no projections (codegen of properties = Phase 2).
 
 ### Verification Plan
 - `dotnet test` — existing suite green; no snapshot churn for hosts without the new attribute.
 
 ### Phase Summary
-_(write when phase completes)_
+Branch `feature/enum-to-class-attribute-properties`. Post-init emits both attributes in one file (`#nullable enable`). Model: `AttributePropertyProjection`, `AttributePropertyAssignment`, `PendingDiagnostic`; helpers `AttributeConstructionEmitter`, `PropertyNameHelper`. Generator reports pending diagnostics. Property surface not emitted yet. Release: 49 integration + 6 snapshot OK (attribute.g.cs snapshots updated).
 
 ## Phase 2: Codegen
 Status: Not started
