@@ -160,8 +160,35 @@ public sealed partial class Tests
             }
 
             [EnumToClass<RoleTypes>]
-            [EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions")]
+            [EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions", Source = "Name")]
             public sealed partial class RoleTypeClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
+    public Task EnumToClass_AttributeProperties_Source_Invalid_ReportsETC014()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class MetaAttribute : Attribute
+            {
+                public MetaAttribute(string label) => Label = label;
+                public string Label { get; }
+            }
+
+            public enum E { [Meta("x")] A }
+
+            [EnumToClass<E>]
+            [EnumToClassProperty<MetaAttribute>(Source = "DoesNotExist")]
+            public sealed partial class Host;
             """;
         return CheckSourceCode<EnumToClassGenerator>(sourceCode);
     }

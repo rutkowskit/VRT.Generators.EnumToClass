@@ -1,0 +1,20 @@
+﻿[
+  {
+    Location: /*
+[EnumToClassProperty<MetaAttribute>(Source = "DoesNotExist")]
+public sealed partial class Host;
+                            ^^^^
+*/
+ : (18,28)-(18,32),
+    Message: Type 'VRT.Generators.Tests.MetaAttribute' has no accessible property, field, or constructor parameter named 'DoesNotExist'.,
+    Severity: Error,
+    Descriptor: {
+      Id: ETC014,
+      Title: Invalid EnumToClassProperty Source,
+      MessageFormat: {0},
+      Category: EnumToClass,
+      DefaultSeverity: Error,
+      IsEnabledByDefault: true
+    }
+  }
+]

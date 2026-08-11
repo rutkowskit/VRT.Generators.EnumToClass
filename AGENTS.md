@@ -35,11 +35,7 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
 
 ## Active plan
 
-| Plan | Status |
-|------|--------|
-| [`plans/enum-to-class-property-source.md`](plans/enum-to-class-property-source.md) | Not started (feasibility planned; await implement) |
-
-Last completed: [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md).
+_None._ Last completed: [`plans/enum-to-class-property-source.md`](plans/enum-to-class-property-source.md) (`Source` on `EnumToClassProperty`).
 
 ## Backlog
 
@@ -65,7 +61,7 @@ Do not re-litigate unless the user overrides.
 6. **`TryGetByName`**: additive; miss → `false` + `Empty`.
 7. Nested hosts: **ETC003**, no generation (until backlog nested work is planned and done).
 8. Flags: `ToString()` lookup only; combined values → `Empty` unless Flags work is implemented.
-9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple` on host applications): opt-in projection of enum-member attributes to host properties; optional `Name`; default property name strips `"Attribute"` suffix; optional **`AsArray`** → `TAttribute[]` (else `TAttribute?`); slim ctor + object initializers; reconstructible attributes only.
+9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple` on host applications): opt-in projection; optional `Name`, **`AsArray`** (`T[]`), **`Source`** (flat member of TAttribute → project value type instead of instance); slim ctor + object initializers; reconstructible constants only.
 
 ## Diagnostics (current)
 
@@ -77,6 +73,7 @@ Do not re-litigate unless the user overrides.
 | `ETC010` | Warning | Attribute cannot be reconstructed for property |
 | `ETC011` | Error | Duplicate `EnumToClassProperty<T>` for same `T` |
 | `ETC012` | Error | Invalid / conflicting property name |
+| `ETC014` | Error | Invalid `Source` on `EnumToClassProperty` |
 
 `EnumToClassDiagnostics.cs`; release tracking via `AnalyzerReleases.*.md`.
 

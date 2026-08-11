@@ -12,6 +12,7 @@ internal static class EnumToClassAttributeDefinition
     public const string PropertyAttributeTypeName = "EnumToClassPropertyAttribute";
     public const string PropertyAttributeNamePropertyName = "Name";
     public const string PropertyAttributeAsArrayPropertyName = "AsArray";
+    public const string PropertyAttributeSourcePropertyName = "Source";
     public const string PropertyAttributeFullyQualifiedMetadataName = $"{NamespaceName}.{PropertyAttributeTypeName}`1";
 
     public const string SourceCode =
@@ -49,10 +50,16 @@ internal static class EnumToClassAttributeDefinition
             public string? Name { get; set; }
 
             /// <summary>
-            /// When true, collects all applications of TAttribute on a member as TAttribute[].
-            /// When false (default), uses the first application as TAttribute? (or null).
+            /// When true, collects all applications of TAttribute on a member as an array.
+            /// When false (default), uses the first application (or null / default).
             /// </summary>
             public bool AsArray { get; set; }
+
+            /// <summary>
+            /// When set, project this member of TAttribute (property or constructor parameter)
+            /// instead of the attribute instance. Single segment only (e.g. "Name").
+            /// </summary>
+            public string? Source { get; set; }
         }
         """;
 }
