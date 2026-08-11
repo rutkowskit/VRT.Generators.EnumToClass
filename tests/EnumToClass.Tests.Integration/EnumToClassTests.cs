@@ -295,15 +295,14 @@ public sealed class EnumToClassTests
     public void AttributeProperties_AsArray_WhenSeveral_ShouldReturnAll()
     {
         var sut = RoleTypeClass.EditorInstance;
-        sut.Permissions.Should().HaveCount(2);
-        sut.Permissions.Select(p => p.Name).Should().BeEquivalentTo("read", "write");
+        sut.Permissions.Should().BeEquivalentTo("read", "write");
     }
 
     [Fact]
     public void AttributeProperties_AsArray_WhenOne_ShouldReturnSingleElementArray()
     {
         var sut = RoleTypeClass.ViewerInstance;
-        sut.Permissions.Should().ContainSingle(p => p.Name == "read");
+        sut.Permissions.Should().Equal("read");
     }
 
     [Fact]
@@ -312,4 +311,5 @@ public sealed class EnumToClassTests
         var sut = RoleTypeClass.GuestInstance;
         sut.Permissions.Should().NotBeNull().And.BeEmpty();
     }
+
 }

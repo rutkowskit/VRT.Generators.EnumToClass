@@ -198,7 +198,7 @@ public enum RoleTypes
 }
 
 [VRT.Generators.EnumToClass.EnumToClass<RoleTypes>]
-[VRT.Generators.EnumToClass.EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions")]
+[VRT.Generators.EnumToClass.EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions", Source = "Name")]
 public sealed partial class RoleTypeClass
 {
 }

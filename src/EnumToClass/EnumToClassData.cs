@@ -81,7 +81,8 @@ internal sealed record EnumToClassData
     {
         var diagnostics = new List<PendingDiagnostic>();
         var projections = new List<AttributePropertyProjection>();
-        var seenAttributeTypes = new HashSet<string>(StringComparer.Ordinal);
+        // Key: attribute type + Source (null Source → "") so same T can be projected twice with different Source.
+        var seenProjectionKeys = new HashSet<string>(StringComparer.Ordinal);
         var seenPropertyNames = new HashSet<string>(StringComparer.Ordinal);
 
         foreach (var attr in host.GetAttributes())
@@ -98,11 +99,22 @@ internal sealed record EnumToClassData
             }
 
             var attributeTypeFullName = attributeType.ToDisplayString(FullyQualified);
-            if (!seenAttributeTypes.Add(attributeTypeFullName))
+
+            string? sourceMemberName = null;
+            if (attr.TryGetNamedArgument<string>(
+                    EnumToClassAttributeDefinition.PropertyAttributeSourcePropertyName,
+                    out var source) &&
+                string.IsNullOrWhiteSpace(source) is false)
+            {
+                sourceMemberName = source.Trim();
+            }
+
+            var projectionKey = attributeTypeFullName + "\u001f" + (sourceMemberName ?? string.Empty);
+            if (!seenProjectionKeys.Add(projectionKey))
             {
                 diagnostics.Add(new PendingDiagnostic(
                     EnumToClassDiagnostics.DuplicateAttributeProperty.Id,
-                    attributeType.ToDisplayString()));
+                    attributeType.ToDisplayString() + (sourceMemberName is null ? string.Empty : $" (Source = {sourceMemberName})")));
                 continue;
             }
 
@@ -127,20 +139,57 @@ internal sealed record EnumToClassData
                 EnumToClassAttributeDefinition.PropertyAttributeAsArrayPropertyName,
                 out var multiple) && multiple;
 
+            string elementTypeFullName;
+            bool elementIsReferenceType;
+            bool elementIsNullableValueType;
+
+            if (sourceMemberName is not null)
+            {
+                if (!AttributeConstructionEmitter.TryResolveSourceMemberType(
+                        attributeType,
+                        sourceMemberName,
+                        out var memberType,
+                        out var sourceError))
+                {
+                    diagnostics.Add(new PendingDiagnostic(
+                        EnumToClassDiagnostics.AttributePropertySourceInvalid.Id,
+                        sourceError ?? $"Invalid Source '{sourceMemberName}'."));
+                    continue;
+                }
+
+                elementTypeFullName = memberType.ToDisplayString(FullyQualified);
+                elementIsReferenceType = memberType.IsReferenceType;
+                elementIsNullableValueType = IsNullableValueType(memberType);
+            }
+            else
+            {
+                elementTypeFullName = attributeTypeFullName;
+                elementIsReferenceType = true;
+                elementIsNullableValueType = false;
+            }
+
             var propertyTypeDisplayName = asArray
-                ? attributeTypeFullName + "[]"
-                : attributeTypeFullName;
+                ? elementTypeFullName + "[]"
+                : elementTypeFullName;
 
             projections.Add(new AttributePropertyProjection(
                 attributeTypeFullName: attributeTypeFullName,
+                elementTypeFullName: elementTypeFullName,
                 propertyTypeDisplayName: propertyTypeDisplayName,
                 propertyName: propertyName,
                 accessibility: attributeType.GetAccessibility() is { Length: > 0 } acc ? acc : "public",
-                asArray: asArray));
+                asArray: asArray,
+                sourceMemberName: sourceMemberName,
+                elementIsReferenceType: elementIsReferenceType,
+                elementIsNullableValueType: elementIsNullableValueType));
         }
 
         return (projections, diagnostics);
     }
+
+    private static bool IsNullableValueType(ITypeSymbol type)
+        => type is INamedTypeSymbol named &&
+           named.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
 
     private static string ResolvePropertyName(AttributeData enumToClassPropertyAttr, string attributeTypeName)
     {
@@ -218,14 +267,18 @@ internal sealed record EnumToClassData
     {
         foreach (var property in AttributeProperties)
         {
-            // Multiple: T[] with empty default (satisfies nullable analysis). Single: T?
+            // AsArray: T[] with empty default. Single: T? for reference / nullable value types; T for non-nullable value types.
             if (property.AsArray)
             {
-                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName} {property.PropertyName} {{ get; private init; }} = global::System.Array.Empty<{property.AttributeTypeFullName}>();";
+                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName} {property.PropertyName} {{ get; private init; }} = global::System.Array.Empty<{property.ElementTypeFullName}>();";
+            }
+            else if (property.UseNullableAnnotation)
+            {
+                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName}? {property.PropertyName} {{ get; private init; }}";
             }
             else
             {
-                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName}? {property.PropertyName} {{ get; private init; }}";
+                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName} {property.PropertyName} {{ get; private init; }}";
             }
         }
     }
@@ -266,24 +319,44 @@ internal sealed record EnumToClassData
     {
         public AttributePropertyProjection(
             string attributeTypeFullName,
+            string elementTypeFullName,
             string propertyTypeDisplayName,
             string propertyName,
             string accessibility,
-            bool asArray)
+            bool asArray,
+            string? sourceMemberName,
+            bool elementIsReferenceType,
+            bool elementIsNullableValueType)
         {
             AttributeTypeFullName = attributeTypeFullName;
+            ElementTypeFullName = elementTypeFullName;
             PropertyTypeDisplayName = propertyTypeDisplayName;
             PropertyName = propertyName;
             Accessibility = accessibility;
             AsArray = asArray;
+            SourceMemberName = sourceMemberName;
+            ElementIsReferenceType = elementIsReferenceType;
+            ElementIsNullableValueType = elementIsNullableValueType;
         }
 
+        /// <summary>Fully qualified attribute type (TAttribute).</summary>
         public string AttributeTypeFullName { get; }
-        /// <summary>Property type: fully qualified attribute type, or that type with <c>[]</c> when <see cref="AsArray"/>.</summary>
+        /// <summary>Element type of the host property (TAttribute or Source member type).</summary>
+        public string ElementTypeFullName { get; }
+        /// <summary>Property type: element type, or element type with <c>[]</c> when <see cref="AsArray"/>.</summary>
         public string PropertyTypeDisplayName { get; }
         public string PropertyName { get; }
         public string Accessibility { get; }
         public bool AsArray { get; }
+        public string? SourceMemberName { get; }
+        public bool ElementIsReferenceType { get; }
+        public bool ElementIsNullableValueType { get; }
+
+        /// <summary>
+        /// Single-mode properties use <c>?</c> for reference types and non-nullable value types
+        /// (missing application → null). Already-nullable value types are left as-is.
+        /// </summary>
+        public bool UseNullableAnnotation => AsArray is false && ElementIsNullableValueType is false;
     }
 
     /// <summary>
@@ -418,7 +491,7 @@ internal sealed record EnumToClassData
                 return new AttributePropertyAssignment(projection.PropertyName, creationExpression: null);
             }
 
-            if (AttributeConstructionEmitter.TryFormat(matches[0], out var expression, out var error))
+            if (TryFormatProjectionValue(matches[0], projection, out var expression, out var error))
             {
                 return new AttributePropertyAssignment(projection.PropertyName, expression);
             }
@@ -430,6 +503,24 @@ internal sealed record EnumToClassData
             return new AttributePropertyAssignment(projection.PropertyName, creationExpression: null);
         }
 
+        private static bool TryFormatProjectionValue(
+            AttributeData match,
+            AttributePropertyProjection projection,
+            out string expression,
+            out string? error)
+        {
+            if (projection.SourceMemberName is not null)
+            {
+                return AttributeConstructionEmitter.TryFormatMemberValue(
+                    match,
+                    projection.SourceMemberName,
+                    out expression,
+                    out error);
+            }
+
+            return AttributeConstructionEmitter.TryFormat(match, out expression, out error);
+        }
+
         private static AttributePropertyAssignment BuildMultipleAssignment(
             AttributePropertyProjection projection,
             List<AttributeData> matches,
@@ -439,13 +530,13 @@ internal sealed record EnumToClassData
             {
                 return new AttributePropertyAssignment(
                     projection.PropertyName,
-                    $"global::System.Array.Empty<{projection.AttributeTypeFullName}>()");
+                    $"global::System.Array.Empty<{projection.ElementTypeFullName}>()");
             }
 
             var elementExpressions = new List<string>(matches.Count);
             foreach (var match in matches)
             {
-                if (AttributeConstructionEmitter.TryFormat(match, out var expression, out var error))
+                if (TryFormatProjectionValue(match, projection, out var expression, out var error))
                 {
                     elementExpressions.Add(expression);
                 }
@@ -462,12 +553,12 @@ internal sealed record EnumToClassData
             {
                 return new AttributePropertyAssignment(
                     projection.PropertyName,
-                    $"global::System.Array.Empty<{projection.AttributeTypeFullName}>()");
+                    $"global::System.Array.Empty<{projection.ElementTypeFullName}>()");
             }
 
             var sb = new StringBuilder();
             sb.Append("new ");
-            sb.Append(projection.AttributeTypeFullName);
+            sb.Append(projection.ElementTypeFullName);
             sb.Append("[] { ");
             for (var i = 0; i < elementExpressions.Count; i++)
             {

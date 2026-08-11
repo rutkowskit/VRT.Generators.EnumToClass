@@ -58,6 +58,14 @@ internal static class EnumToClassDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor AttributePropertySourceInvalid = new(
+        id: "ETC014",
+        title: "Invalid EnumToClassProperty Source",
+        messageFormat: "{0}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public static DiagnosticDescriptor? TryGetDescriptor(string id) => id switch
     {
         "ETC001" => TypeMustBePartial,
@@ -66,6 +74,7 @@ internal static class EnumToClassDiagnostics
         "ETC010" => AttributePropertyNotConstructible,
         "ETC011" => DuplicateAttributeProperty,
         "ETC012" => AttributePropertyNameInvalid,
+        "ETC014" => AttributePropertySourceInvalid,
         _ => null
     };
 }

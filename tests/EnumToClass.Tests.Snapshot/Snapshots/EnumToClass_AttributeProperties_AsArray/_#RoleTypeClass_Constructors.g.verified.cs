@@ -17,7 +17,7 @@ namespace VRT.Generators.Tests
         public bool IsEmpty { get; }
 
         
-        public global::VRT.Generators.Tests.PermissionAttribute[] Permissions { get; private init; } = global::System.Array.Empty<global::VRT.Generators.Tests.PermissionAttribute>();
+        public string[] Permissions { get; private init; } = global::System.Array.Empty<string>();
         public bool Equals(RoleTypeClass? other)
     => other is not null && other.Value == Value;
 

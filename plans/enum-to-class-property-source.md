@@ -119,20 +119,20 @@ Semantics matrix:
 ## Phases (when executing)
 
 ### Phase 1: API + resolve member value from AttributeData
-Status: Not started
+Status: Complete
 
-- [ ] Add `Source` to generated `EnumToClassPropertyAttribute<T>`.
-- [ ] Plumb into `AttributePropertyProjection` (`SourceMemberName`, element type FQN).
-- [ ] `TryFormatAttributeMemberValue` in emitter (named arg / ctor param).
-- [ ] Diagnostics if Source invalid.
-- [ ] Existing tests green when Source omitted.
+- [x] Add `Source` to generated `EnumToClassPropertyAttribute<T>`.
+- [x] Plumb into `AttributePropertyProjection` (`SourceMemberName`, element type FQN).
+- [x] `TryFormatMemberValue` / `TryResolveSourceMemberType` in emitter (named arg / ctor param).
+- [x] Diagnostics if Source invalid (ETC014).
+- [x] Existing tests green when Source omitted.
 
 ### Phase 2: Codegen + tests + docs
-Status: Not started
+Status: Complete
 
-- [ ] Declaration / assignment paths for Source ± AsArray.
-- [ ] Integration + snapshot (Permission Name → string / string[]).
-- [ ] README + AGENTS product decision.
+- [x] Declaration / assignment paths for Source ± AsArray.
+- [x] Integration + snapshot (Permission Name → string[]; ETC014 invalid Source).
+- [x] README + AGENTS product decision.
 
 ### Verification Plan
 - `dotnet test -c Release`
@@ -143,7 +143,9 @@ Status: Not started
 Propose commit messages only; never commit. On full plan complete, strip plan noise from `AGENTS.md` per process rules.
 
 ## Final Recap
-_(when done)_
+Delivered optional **`Source`** on `EnumToClassPropertyAttribute<T>`: project a flat attribute member (property/ctor param) as the host property value type, combinable with `AsArray`. Branch `feature/enum-to-class-property-source`. ETC014 for invalid Source. Nested paths deferred.
 
 ## Deployment Plan
-_(when done)_
+1. PR → merge to `master`.
+2. `dotnet test -c Release`.
+3. Tag/publish when ready.

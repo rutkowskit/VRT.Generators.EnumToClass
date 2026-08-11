@@ -8,9 +8,9 @@ namespace VRT.Generators.Tests
     {
         private static readonly global::System.Collections.ObjectModel.ReadOnlyDictionary<string, RoleTypeClass> ValueByNameMap = new global::System.Collections.ObjectModel.ReadOnlyDictionary<string, RoleTypeClass>(new global::System.Collections.Generic.Dictionary<string, RoleTypeClass>()
         {
-            ["Editor"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Editor) { Permissions = new global::VRT.Generators.Tests.PermissionAttribute[] { new global::VRT.Generators.Tests.PermissionAttribute("read"), new global::VRT.Generators.Tests.PermissionAttribute("write") } },
-            ["Viewer"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Viewer) { Permissions = new global::VRT.Generators.Tests.PermissionAttribute[] { new global::VRT.Generators.Tests.PermissionAttribute("read") } },
-            ["Guest"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Guest) { Permissions = global::System.Array.Empty<global::VRT.Generators.Tests.PermissionAttribute>() }
+            ["Editor"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Editor) { Permissions = new string[] { "read", "write" } },
+            ["Viewer"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Viewer) { Permissions = new string[] { "read" } },
+            ["Guest"] = new RoleTypeClass(VRT.Generators.Tests.RoleTypes.Guest) { Permissions = global::System.Array.Empty<string>() }
         });
 
         public static RoleTypeClass Empty { get; } = ValueByNameMap["Editor"];
