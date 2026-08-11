@@ -13,6 +13,7 @@ internal static class EnumToClassAttributeDefinition
     public const string PropertyAttributeNamePropertyName = "Name";
     public const string PropertyAttributeAsArrayPropertyName = "AsArray";
     public const string PropertyAttributeSourcePropertyName = "Source";
+    public const string PropertyAttributeAsBooleanPropertyName = "AsBoolean";
     public const string PropertyAttributeFullyQualifiedMetadataName = $"{NamespaceName}.{PropertyAttributeTypeName}`1";
 
     public const string SourceCode =
@@ -60,6 +61,12 @@ internal static class EnumToClassAttributeDefinition
             /// instead of the attribute instance. Single segment only (e.g. "Name").
             /// </summary>
             public string? Source { get; set; }
+
+            /// <summary>
+            /// When true, emit a bool host property that is true when TAttribute is applied
+            /// on the enum member. Incompatible with AsArray and Source.
+            /// </summary>
+            public bool AsBoolean { get; set; }
         }
         """;
 }

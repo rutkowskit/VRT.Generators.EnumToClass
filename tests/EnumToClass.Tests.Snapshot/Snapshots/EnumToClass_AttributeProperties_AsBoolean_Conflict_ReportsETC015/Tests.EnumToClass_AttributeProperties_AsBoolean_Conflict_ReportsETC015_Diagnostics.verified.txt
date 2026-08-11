@@ -1,0 +1,20 @@
+﻿[
+  {
+    Location: /*
+[EnumToClassProperty<MetaAttribute>(AsBoolean = true, Source = "Label")]
+public sealed partial class Host;
+                            ^^^^
+*/
+ : (18,28)-(18,32),
+    Message: AsBoolean cannot be combined with AsArray or Source on the same EnumToClassPropertyAttribute.,
+    Severity: Error,
+    Descriptor: {
+      Id: ETC015,
+      Title: Conflicting EnumToClassProperty options,
+      MessageFormat: {0},
+      Category: EnumToClass,
+      DefaultSeverity: Error,
+      IsEnabledByDefault: true
+    }
+  }
+]

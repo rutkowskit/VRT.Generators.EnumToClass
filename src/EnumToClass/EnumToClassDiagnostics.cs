@@ -66,6 +66,14 @@ internal static class EnumToClassDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true);
 
+    public static readonly DiagnosticDescriptor AttributePropertyModeConflict = new(
+        id: "ETC015",
+        title: "Conflicting EnumToClassProperty options",
+        messageFormat: "{0}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
     public static DiagnosticDescriptor? TryGetDescriptor(string id) => id switch
     {
         "ETC001" => TypeMustBePartial,
@@ -75,6 +83,7 @@ internal static class EnumToClassDiagnostics
         "ETC011" => DuplicateAttributeProperty,
         "ETC012" => AttributePropertyNameInvalid,
         "ETC014" => AttributePropertySourceInvalid,
+        "ETC015" => AttributePropertyModeConflict,
         _ => null
     };
 }

@@ -167,6 +167,61 @@ public sealed partial class Tests
     }
 
     [Fact]
+    public Task EnumToClass_AttributeProperties_AsBoolean()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class AdminOnlyAttribute : Attribute { }
+
+            public enum FeatureFlags
+            {
+                [AdminOnly]
+                Sensitive,
+                Public = 1,
+            }
+
+            [EnumToClass<FeatureFlags>]
+            [EnumToClassProperty<AdminOnlyAttribute>(AsBoolean = true, Name = "HasAdminOnly")]
+            public sealed partial class FeatureFlagClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
+    public Task EnumToClass_AttributeProperties_AsBoolean_Conflict_ReportsETC015()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class MetaAttribute : Attribute
+            {
+                public MetaAttribute(string label) => Label = label;
+                public string Label { get; }
+            }
+
+            public enum E { [Meta("x")] A }
+
+            [EnumToClass<E>]
+            [EnumToClassProperty<MetaAttribute>(AsBoolean = true, Source = "Label")]
+            public sealed partial class Host;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
     public Task EnumToClass_AttributeProperties_Source_Invalid_ReportsETC014()
     {
         var sourceCode = """

@@ -11,3 +11,4 @@ ETC010 | EnumToClass | Warning | Attribute type cannot be reconstructed for a pr
 ETC011 | EnumToClass | Error | Duplicate EnumToClassProperty for the same attribute type
 ETC012 | EnumToClass | Error | Invalid or conflicting projected property name
 ETC014 | EnumToClass | Error | Invalid EnumToClassProperty Source member
+ETC015 | EnumToClass | Error | Conflicting EnumToClassProperty options (AsBoolean vs AsArray/Source)

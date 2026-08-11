@@ -52,6 +52,12 @@ internal sealed class EnumToClassPropertyAttribute<TAttribute> : Attribute
     /// Single segment only (e.g. "Name").
     /// </summary>
     public string? Source { get; set; }
+
+    /// <summary>
+    /// When true, emit a bool: whether TAttribute is applied on the enum member.
+    /// Incompatible with AsArray and Source.
+    /// </summary>
+    public bool AsBoolean { get; set; }
 }
 ```
 
@@ -62,19 +68,21 @@ Example:
 [EnumToClassProperty<Metadata1Attribute>]
 [EnumToClassProperty<Metadata2Attribute>(Name = "Meta2")]
 [EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions", Source = "Name")]
+[EnumToClassProperty<AdminOnlyAttribute>(AsBoolean = true, Name = "HasAdminOnly")]
 public sealed partial class TestEnumClass { }
 ```
 
 Generates properties filled from each enum member’s attributes via object initializers on the static map (constructor stays slim):
 
-| AsArray | Source | Host type | Value |
-|---------|--------|-----------|--------|
-| false | (null) | `TAttribute?` | instance / null |
-| true | (null) | `TAttribute[]` | instances / empty |
-| false | `"Name"` | e.g. `string?` | member value / null |
-| true | `"Name"` | e.g. `string[]` | values / empty |
+| AsBoolean | AsArray | Source | Host type | Value |
+|-----------|---------|--------|-----------|--------|
+| false | false | (null) | `TAttribute?` | instance / null |
+| false | true | (null) | `TAttribute[]` | instances / empty |
+| false | false | `"Name"` | e.g. `string?` | member value / null |
+| false | true | `"Name"` | e.g. `string[]` | values / empty |
+| true | false | (null) | `bool` | attribute present / absent |
 
-Only attributes / member values reconstructible from metadata (public ctor + constant args) are supported. Nested `Source` paths are not supported.
+`AsBoolean` cannot be combined with `AsArray` or `Source` (ETC015). Nested `Source` paths are not supported. Only reconstructible attribute/member values are supported for non-boolean modes.
 
 Equality still compares **`Value` only** — projected attribute properties do not participate in `Equals` / `==`.
 
@@ -89,6 +97,7 @@ Equality still compares **`Value` only** — projected attribute properties do n
 | `ETC011` | Error | Duplicate `EnumToClassProperty<T>` for the same `T` |
 | `ETC012` | Error | Invalid or conflicting projected property name |
 | `ETC014` | Error | Invalid `Source` member on `EnumToClassProperty` |
+| `ETC015` | Error | Conflicting `EnumToClassProperty` options (`AsBoolean` vs `AsArray`/`Source`) |
 
 ## Usage
 
@@ -140,7 +149,7 @@ For a partial class host the generator emits (among other members):
 
 ### Version 1.0.8
 1. Hardening: Empty flyweight, escaped literals, constant-only enum members, class `IEquatable`/`==`, `TryGetByName`, `ETC001`–`ETC003`, `global::` BCL types, doc indent, full `<summary>` for `Description`.
-2. **`EnumToClassPropertyAttribute<T>`**: project selected enum-member attributes as host properties (`Name`, **`AsArray`**, **`Source`**). Diagnostics `ETC010`–`ETC012`, `ETC014`.
+2. **`EnumToClassPropertyAttribute<T>`**: project selected enum-member attributes as host properties (`Name`, **`AsArray`**, **`Source`**, **`AsBoolean`**). Diagnostics `ETC010`–`ETC012`, `ETC014`–`ETC015`.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.

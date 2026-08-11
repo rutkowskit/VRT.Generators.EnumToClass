@@ -42,4 +42,10 @@ internal sealed class EnumToClassPropertyAttribute<TAttribute> : global::System.
     /// instead of the attribute instance. Single segment only (e.g. "Name").
     /// </summary>
     public string? Source { get; set; }
+
+    /// <summary>
+    /// When true, emit a bool host property that is true when TAttribute is applied
+    /// on the enum member. Incompatible with AsArray and Source.
+    /// </summary>
+    public bool AsBoolean { get; set; }
 }
