@@ -37,7 +37,7 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
 
 | Plan | Status |
 |------|--------|
-| [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md) | In progress (Phase 1 Complete; Phase 2 next) |
+| [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md) | In progress (Phase 2 Complete; Phase 3 next) |
 
 Execute only when the user asks to implement / run the plan. Read the plan file for API locks, phases, and verification.
 

@@ -132,6 +132,47 @@ public sealed partial class Tests
     }
 
     [Fact]
+    public Task EnumToClass_AttributeProperties()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class Metadata1Attribute : Attribute
+            {
+                public Metadata1Attribute(string label) => Label = label;
+                public string Label { get; }
+            }
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class Metadata2Attribute : Attribute
+            {
+            }
+
+            public enum MetadataElements
+            {
+                [Metadata1("alpha")]
+                [Metadata2]
+                Both,
+                [Metadata2]
+                OnlySecond = 1,
+                Bare = 2,
+            }
+
+            [EnumToClass<MetadataElements>]
+            [EnumToClassProperty<Metadata1Attribute>]
+            [EnumToClassProperty<Metadata2Attribute>(Name = "Meta2")]
+            public sealed partial class MetadataElementClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
     public Task EnumToClass_NestedType_ReportsETC003()
     {
         var sourceCode = """

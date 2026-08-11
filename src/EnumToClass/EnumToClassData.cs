@@ -179,9 +179,38 @@ internal sealed record EnumToClassData
     }
     public string GetClassConstruction(EnumFieldData member)
     {
-        return GenerateDescription
+        var construction = GenerateDescription
             ? $"new {ClassName}({member.FullName}, {CodeLiteral.String(member.Description ?? member.Name)})"
             : $"new {ClassName}({member.FullName})";
+
+        if (HasAttributeProperties is false || member.AttributeAssignments.Count == 0)
+        {
+            return construction;
+        }
+
+        var assignments = new StringBuilder();
+        for (var i = 0; i < member.AttributeAssignments.Count; i++)
+        {
+            if (i > 0)
+            {
+                assignments.Append(", ");
+            }
+
+            var assignment = member.AttributeAssignments[i];
+            assignments.Append(assignment.PropertyName);
+            assignments.Append(" = ");
+            assignments.Append(assignment.CreationExpression ?? "null");
+        }
+
+        return $"{construction} {{ {assignments} }}";
+    }
+
+    public IEnumerable<string> GetAttributePropertyDeclarationLines()
+    {
+        foreach (var property in AttributeProperties)
+        {
+            yield return $"{property.Accessibility} {property.PropertyTypeDisplayName}? {property.PropertyName} {{ get; private init; }}";
+        }
     }
 
     /// <summary>

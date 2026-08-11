@@ -194,19 +194,19 @@ Status: Complete
 Branch `feature/enum-to-class-attribute-properties`. Post-init emits both attributes in one file (`#nullable enable`). Model: `AttributePropertyProjection`, `AttributePropertyAssignment`, `PendingDiagnostic`; helpers `AttributeConstructionEmitter`, `PropertyNameHelper`. Generator reports pending diagnostics. Property surface not emitted yet. Release: 49 integration + 6 snapshot OK (attribute.g.cs snapshots updated).
 
 ## Phase 2: Codegen
-Status: Not started
+Status: Complete
 
-- [ ] Emit nullable properties (`private init` / `private set`) with correct accessibility.
-- [ ] Map entries: `new Host(enumValue) { Prop = ..., ... }` (and description overload unchanged).
-- [ ] Empty / flyweight still correct with initializers.
-- [ ] Integration + snapshot tests for the metadata example and `Name` override.
+- [x] Emit nullable properties (`private init`) with accessibility from attribute type.
+- [x] Map entries: `new Host(enumValue) { Prop = ..., ... }` (description ctor overload unchanged).
+- [x] Empty / flyweight still correct with initializers (Empty aliases map entry when default named).
+- [x] Integration + snapshot tests for metadata example and `Name` override.
 
 ### Verification Plan
 - Integration asserts property values/nulls; snapshots match expected API.
 - `dotnet test -c Release` green.
 
 ### Phase Summary
-_(write when phase completes)_
+`GetClassConstruction` appends object initializers; `GetAttributePropertyDeclarationLines` emits properties. Integration `MetadataElementClass` + snapshot `EnumToClass_AttributeProperties`. Release: 53 integration + 7 snapshot OK.
 
 ## Phase 3: Diagnostics polish + docs + release tracking
 Status: Not started

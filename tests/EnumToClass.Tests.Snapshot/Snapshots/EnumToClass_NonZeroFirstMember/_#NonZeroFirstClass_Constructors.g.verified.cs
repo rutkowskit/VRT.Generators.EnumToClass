@@ -17,6 +17,7 @@ namespace VRT.Generators.Tests
         public bool IsEmpty { get; }
 
         
+        
         public bool Equals(NonZeroFirstClass? other)
     => other is not null && other.Value == Value;
 

@@ -106,6 +106,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
                     public bool IsEmpty { get; }
 
                     {{data.GetDescriptionFieldDeclaration()}}
+                    {{string.Join($"{EndOfLine}                    ", data.GetAttributePropertyDeclarationLines())}}
                     {{GenerateEqualityMembers(data)}}
 
                     public override string ToString() => Name;
