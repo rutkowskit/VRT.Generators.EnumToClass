@@ -19,6 +19,15 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>nuget_icon.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
+        <!-- Explicit repo metadata for NuGet (Source Link / pack); not from MinVer. -->
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/rutkowskit/VRT.Generators.EnumToClass.git</RepositoryUrl>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    </PropertyGroup>
+
+    <!-- GitHub Actions: short branch/tag name (e.g. master), not refs/heads/... -->
+    <PropertyGroup Condition="'$(GITHUB_REF_NAME)' != ''">
+        <RepositoryBranch>$(GITHUB_REF_NAME)</RepositoryBranch>
     </PropertyGroup>
     
     <ItemGroup Label="Nuget">
