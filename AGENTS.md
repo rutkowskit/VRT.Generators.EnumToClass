@@ -57,7 +57,7 @@ Do not re-litigate unless the user overrides.
 | `ETC002` | Warning | Enum has no named members |
 | `ETC003` | Error | Host type is nested — generation skipped |
 
-Defined in `src/EnumToClass/EnumToClassDiagnostics.cs`. RS2008 (analyzer release tracking) is suppressed in the generator csproj.
+Defined in `src/EnumToClass/EnumToClassDiagnostics.cs`. Release tracking: `AnalyzerReleases.Shipped.md` + `AnalyzerReleases.Unshipped.md` (AdditionalFiles).
 
 ## Key implementation map
 
@@ -93,9 +93,9 @@ Plan file: `plans/enum-to-class-hardening.md`.
 | 6 Doc indent polish | **Complete** | `DocumentationFormatter`; consistent `///` indent in generated members |
 | 7 Description summary + RS2008 | **Complete** | Full multiline `<summary>` for Description; analyzer release tracking files |
 
-**Final Recap / Deployment Plan** are filled in the plan file.
+**Hardening plan status: COMPLETE** (phases 1–7). Final Recap / Deployment Plan are in the plan file. No further phases are scheduled unless the user opens new scope.
 
-### Intentionally deferred
+### Intentionally deferred (require explicit user go-ahead)
 
 - Nested host type **full generation** (outer partial wrapping) — only ETC003 today.
 - Flags-aware parsing.
@@ -217,6 +217,7 @@ Also add AGENTS.md for multi-session agent handoff.
 | Hardening session | Phase 5: ETC003 nested host diagnostic implemented and verified (48 integration + 6 snapshot Release). |
 | Hardening session | Phase 6: XML doc indent polish via DocumentationFormatter; snapshots updated; Release tests green. |
 | Hardening session | Phase 7: full multiline summary for Description; analyzer release tracking; Release 49+6 green. |
+| Hardening session | Confirmed: no more scheduled plan phases; remaining items are deferred product features only. |
 
 ## How to resume in a new session
 
