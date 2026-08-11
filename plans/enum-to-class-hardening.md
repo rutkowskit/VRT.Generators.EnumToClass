@@ -92,7 +92,7 @@ Status: Complete
 
 - [x] Integration: underlying type `byte` or `long` (implicit operators compile and convert correctly).
 - [x] Integration: non-`partial` host produces diagnostic (not only cryptic CS errors), if Phase 3 diagnostics landed.
-- [ ] Integration or snapshot: nested type host — either supported with correct partial nesting or diagnostic “not supported”.
+- [x] Integration or snapshot: nested type host — either supported with correct partial nesting or diagnostic “not supported”.
 - [x] Snapshot for **class** host (not only record) including Equals/`==` surface after Phase 2.
 - [x] Flags enum: document current behavior (ToString miss → Empty) in README; optional test locking that behavior.
 - [x] Case sensitivity of `GetByName`: test + document (exact ordinal match).
@@ -103,19 +103,36 @@ Status: Complete
 - `dotnet test -c Release --no-build` after a clean Release build — same pass (CI parity).
 
 ### Phase Summary
-Byte-backed enum + case-sensitivity integration tests. Snapshot `EnumToClass_NonPartial_ReportsETC001` locks `ETC001` (snapshot harness now merges `driver.GetRunResult().Diagnostics`). Class hosts in escaped/non-zero snapshots. Flags + nested limitations documented in README. Nested-type diagnostic/support intentionally left open (documented unsupported; no implementation this pass).
+Byte-backed enum + case-sensitivity integration tests. Snapshot `EnumToClass_NonPartial_ReportsETC001` locks `ETC001` (snapshot harness now merges `driver.GetRunResult().Diagnostics`). Class hosts in escaped/non-zero snapshots. Flags documented in README. Nested-type diagnostic completed in **Phase 5** (`ETC003`).
 
 **Release verification (2026-03-24 session):** `dotnet test -c Release` → 48 integration + 5 snapshot passed. Pack → `analyzers/dotnet/cs/EnumToClass.dll` only (+ readme/icon).
 
+## Phase 5: Nested host diagnostic (deferred from Phase 4)
+Status: Complete
+
+- [x] Detect nested host types (`ContainingType is not null`).
+- [x] Emit **ETC003** error and **skip** code generation (no broken namespace-level partials).
+- [x] Snapshot test locking ETC003 message/location shape.
+- [x] Document ETC003 in README diagnostics + semantics.
+
+### Verification Plan
+- `dotnet test -c Release` — all green (integration + snapshots including NestedType).
+- Snapshot `EnumToClass_NestedType_ReportsETC003` shows ETC003; no Constants/Constructors sources for nested host.
+
+### Phase Summary
+`IsNested` / `ContainingTypeName` on `EnumToClassData`. Generator reports `ETC003` before partial checks and returns without `AddSource`. Snapshot + README updated. Full nested-type **support** remains out of scope.
+
+**Verification:** Release tests 48 integration + 6 snapshot passed.
+
 ## Final Recap
-Hardening of `EnumToClass` on branch `feature/enum-to-class-hardening` delivered P0–P3 of the review plan:
+Hardening of `EnumToClass` on branch `feature/enum-to-class-hardening` delivered P0–P3 plus Phase 5 nested diagnostic:
 
 1. **Correctness:** constant-only enum members, escaped literals, Empty flyweight aligned with `default(TEnum)`.
 2. **API:** `IEquatable`/`==` for classes, `TryGetByName`, identity-preserving lookups.
-3. **Quality:** `ETC001`/`ETC002`, `global::` BCL, hygiene, CI branches, README, LangVersion.
-4. **Tests:** edge cases (non-zero first, escapes, byte underlying, case sensitivity, non-partial diagnostic, class snapshots).
+3. **Quality:** `ETC001`/`ETC002`/`ETC003`, `global::` BCL, hygiene, CI branches, README, LangVersion.
+4. **Tests:** edge cases (non-zero first, escapes, byte underlying, case sensitivity, non-partial, nested host).
 
-Remaining known gaps (explicitly deferred): nested host types, Flags-aware parsing, Json/Type converters, XML doc indent polish.
+Remaining known gaps (explicitly deferred): nested host **generation** (only diagnostic), Flags-aware parsing, Json/Type converters, XML doc indent polish.
 
 ## Deployment Plan
 1. Review diff on `feature/enum-to-class-hardening`; merge to `master` (or PR).

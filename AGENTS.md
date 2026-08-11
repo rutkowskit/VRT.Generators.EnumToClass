@@ -45,8 +45,8 @@ Do not re-litigate unless the user overrides.
 4. **Enum members** only: `IFieldSymbol` with `IsStatic && HasConstantValue` (excludes metadata `value__`).
 5. **Classes**: implement `IEquatable<T>`, `Equals`/`GetHashCode`, `operator ==` / `!=` by `Value`. **Records**: do not emit custom Equals (compiler/record equality).
 6. **`TryGetByName`**: additive; returns `false` on miss and sets `out` to `Empty`. `GetByName` still returns `Empty` on miss.
-7. **Out of scope** (unless explicitly added later): JsonConverter, TypeConverter, Flags-aware parsing, renaming `*Instance` API (breaking), nested host type generation.
-8. **Nested host types**: unsupported; document only (no outer-type wrapping in generated partials).
+7. **Out of scope** (unless explicitly added later): JsonConverter, TypeConverter, Flags-aware parsing, renaming `*Instance` API (breaking), nested host type **generation** (full support).
+8. **Nested host types**: unsupported for generation; generator reports **`ETC003`** and skips output (no outer-type wrapping in generated partials).
 9. **`[Flags]` / combined values**: enum→class uses `ToString()`; combined names are not map keys → `Empty`. Documented, not “fixed” as smart Flags.
 
 ## Diagnostics
@@ -55,6 +55,7 @@ Do not re-litigate unless the user overrides.
 |----|----------|------|
 | `ETC001` | Error | Host type is not `partial` — generation skipped |
 | `ETC002` | Warning | Enum has no named members |
+| `ETC003` | Error | Host type is nested — generation skipped |
 
 Defined in `src/EnumToClass/EnumToClassDiagnostics.cs`. RS2008 (analyzer release tracking) is suppressed in the generator csproj.
 
@@ -86,13 +87,14 @@ Plan file: `plans/enum-to-class-hardening.md`.
 | 1 P0 correctness | **Complete** | filter members, escape, Empty/default flyweight + tests |
 | 2 P1 smart-enum contract | **Complete** | IEquatable/==, TryGetByName, identity tests |
 | 3 P2 quality/hygiene | **Complete** | ETC001/002, global::, dead code, CI, README, LangVersion |
-| 4 P3 test matrix | **Complete** | byte underlying, case sensitivity, non-partial snapshot, docs for Flags/nested |
+| 4 P3 test matrix | **Complete** | byte underlying, case sensitivity, non-partial snapshot, docs for Flags |
+| 5 Nested diagnostic | **Complete** | ETC003 on nested hosts; skip generation; snapshot + README |
 
-**Final Recap / Deployment Plan** are filled in the plan file. Working tree may still be **uncommitted** on `feature/enum-to-class-hardening` — see commit proposals below.
+**Final Recap / Deployment Plan** are filled in the plan file.
 
 ### Intentionally deferred
 
-- Nested host type support or dedicated diagnostic beyond docs.
+- Nested host type **full generation** (outer partial wrapping) — only ETC003 today.
 - Flags-aware parsing.
 - XML documentation comment indentation polish in generated members.
 - Analyzer release-tracking files (RS2008 suppressed instead).
@@ -162,7 +164,17 @@ non-partial ETC001; document Flags and nested-type limitations.
 Merge generator diagnostics into snapshot harness.
 ```
 
-### Rollup (all phases 1–4 in one human commit)
+### Phase 5 — nested host diagnostic
+
+```
+feat(generator): report ETC003 and skip generation for nested hosts
+
+Detect nested EnumToClass hosts (ContainingType), emit ETC003 error,
+and do not emit partial sources that would land at namespace scope.
+Add snapshot coverage and document ETC003 in README.
+```
+
+### Rollup (historical — phases 1–4 already committed by user)
 
 ```
 feat(generator): harden EnumToClass Empty, equality, diagnostics, and tests
@@ -181,6 +193,8 @@ Also add AGENTS.md for multi-session agent handoff.
 | Hardening session | Branch `feature/enum-to-class-hardening` created; phases 1–4 implemented and verified (Release: 48 integration + 5 snapshot). |
 | Hardening session | User asked: after each completed phase propose a git commit message; create/maintain English `AGENTS.md`. |
 | Hardening session | User clarified: **agent never creates commits** — only propose the message; user reviews and makes a **collective commit per plan phase**. |
+| Hardening session | User committed rollup for phases 1–4 on `feature/enum-to-class-hardening`. |
+| Hardening session | Phase 5: ETC003 nested host diagnostic implemented and verified (48 integration + 6 snapshot Release). |
 
 ## How to resume in a new session
 

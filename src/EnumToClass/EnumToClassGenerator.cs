@@ -36,7 +36,17 @@ public class EnumToClassGenerator : IIncrementalGenerator
         // Generate the partial class for each matched class
         context.RegisterSourceOutput(pipeline, static (ctx, model) =>
         {
-            if (model!.IsPartial is false)
+            if (model!.IsNested)
+            {
+                ctx.ReportDiagnostic(Diagnostic.Create(
+                    EnumToClassDiagnostics.NestedTypeNotSupported,
+                    model.Location,
+                    model.ClassName,
+                    model.ContainingTypeName));
+                return;
+            }
+
+            if (model.IsPartial is false)
             {
                 ctx.ReportDiagnostic(Diagnostic.Create(
                     EnumToClassDiagnostics.TypeMustBePartial,

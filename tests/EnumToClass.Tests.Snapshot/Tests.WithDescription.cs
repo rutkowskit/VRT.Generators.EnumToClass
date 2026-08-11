@@ -130,4 +130,31 @@ public sealed partial class Tests
             """;
         return CheckSourceCode<EnumToClassGenerator>(sourceCode);
     }
+
+    [Fact]
+    public Task EnumToClass_NestedType_ReportsETC003()
+    {
+        var sourceCode = """
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            public enum NestedHostEnum
+            {
+                A,
+                B,
+            }
+
+            public sealed class OuterType
+            {
+                [EnumToClass<NestedHostEnum>]
+                public sealed partial class NestedSmartEnum
+                {
+                }
+            }
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
 }

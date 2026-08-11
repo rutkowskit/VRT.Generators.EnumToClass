@@ -24,4 +24,13 @@ internal static class EnumToClassDiagnostics
         category: Category,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor NestedTypeNotSupported = new(
+        id: "ETC003",
+        title: "Nested type is not supported",
+        messageFormat: "Type '{0}' is nested inside '{1}'; EnumToClassAttribute is not supported on nested types",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true,
+        description: "Generated partials are emitted at namespace scope and cannot correctly extend nested host types.");
 }

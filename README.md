@@ -34,6 +34,7 @@ internal sealed class EnumToClassAttribute<T> : global::System.Attribute
 |----|----------|---------|
 | `ETC001` | Error | Host type is not `partial` |
 | `ETC002` | Warning | Enum has no named members |
+| `ETC003` | Error | Host type is nested (not supported; generation skipped) |
 
 ## Usage
 
@@ -68,7 +69,7 @@ public sealed partial record TestElementRecord
 - **`TryGetByName`**: returns `false` on miss (and sets `value` to `Empty`).
 - **Classes** implement `IEquatable<T>` and `==` / `!=` by `Value`. Records use built-in record equality.
 - **`[Flags]` / combined values**: conversion from enum uses `ToString()`; combined flag names are not map keys, so lookup yields `Empty`. Flags-aware parsing is out of scope.
-- **Nested host types**: not supported (outer type wrapping is not emitted).
+- **Nested host types**: not supported — generator reports **`ETC003`** and skips code generation (partials would be emitted at namespace scope).
 
 ## Generated surface (illustrative)
 
@@ -87,7 +88,7 @@ For a partial class host the generator emits (among other members):
 2. Escape string literals in generated code (`Description`, map keys).
 3. Enum members filtered to static constant fields only (excludes metadata `value__`).
 4. `IEquatable<T>` and `==` / `!=` for class hosts; `TryGetByName`.
-5. Diagnostics `ETC001` / `ETC002`; `global::` qualified BCL types in generated code.
+5. Diagnostics `ETC001` / `ETC002` / `ETC003` (nested host); `global::` qualified BCL types in generated code.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.

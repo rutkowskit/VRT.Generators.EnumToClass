@@ -39,6 +39,8 @@ internal sealed record EnumToClassData
                 .TryGetNamedArgument<bool>(EnumToClassAttributeDefinition.WithDescriptionPropertyName, out var withDescription) && withDescription,
             IsRecord = classWithAttribute.IsRecord,
             IsPartial = classWithAttribute.IsDeclaredPartial(),
+            IsNested = classWithAttribute.ContainingType is not null,
+            ContainingTypeName = classWithAttribute.ContainingType?.ToDisplayString() ?? string.Empty,
             Location = classWithAttribute.Locations.FirstOrDefault() ?? Location.None,
             ClassPartialDeclaration = classWithAttribute.GetPartialDeclaration(),
             _enumFields = fields
@@ -53,6 +55,8 @@ internal sealed record EnumToClassData
     public bool GenerateDescription { get; private set; }
     public bool IsRecord { get; private set; }
     public bool IsPartial { get; private set; }
+    public bool IsNested { get; private set; }
+    public string ContainingTypeName { get; private set; } = string.Empty;
     public Location Location { get; private set; } = Location.None;
 
     public IReadOnlyCollection<EnumFieldData> GetEnumFields() => _enumFields;
