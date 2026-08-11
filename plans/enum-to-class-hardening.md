@@ -129,10 +129,25 @@ Hardening of `EnumToClass` on branch `feature/enum-to-class-hardening` delivered
 
 1. **Correctness:** constant-only enum members, escaped literals, Empty flyweight aligned with `default(TEnum)`.
 2. **API:** `IEquatable`/`==` for classes, `TryGetByName`, identity-preserving lookups.
-3. **Quality:** `ETC001`/`ETC002`/`ETC003`, `global::` BCL, hygiene, CI branches, README, LangVersion.
+3. **Quality:** `ETC001`/`ETC002`/`ETC003`, `global::` BCL, hygiene, CI branches, README, LangVersion, doc indent polish (Phase 6).
 4. **Tests:** edge cases (non-zero first, escapes, byte underlying, case sensitivity, non-partial, nested host).
 
-Remaining known gaps (explicitly deferred): nested host **generation** (only diagnostic), Flags-aware parsing, Json/Type converters, XML doc indent polish.
+Remaining known gaps (explicitly deferred): nested host **generation** (only diagnostic), Flags-aware parsing, Json/Type converters.
+
+## Phase 6: XML documentation indentation polish
+Status: Complete
+
+- [x] Normalize documentation trivia/lines to clean `/// ...` without source indentation (`DocumentationFormatter`).
+- [x] Emit each doc line as a separate join segment so member indent (`        `) applies to every line.
+- [x] Simplify description-built summaries to unindented `///` lines before format.
+- [x] Update Verify snapshots for Constants files with correct doc alignment.
+
+### Verification Plan
+- `dotnet test -c Release` — all green.
+- Inspect Constants snapshots: every `///` line aligned with `public const` / `*Instance` members.
+
+### Phase Summary
+Root cause was multi-line doc strings joined with only inter-item newlines, so internal lines kept source indent. Fixed by line-wise yield + trim. Release: 48 integration + 6 snapshot OK.
 
 ## Deployment Plan
 1. Review diff on `feature/enum-to-class-hardening`; merge to `master` (or PR).

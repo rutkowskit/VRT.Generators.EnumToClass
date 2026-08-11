@@ -190,7 +190,11 @@ public class EnumToClassGenerator : IIncrementalGenerator
     {
         foreach (var member in data.GetEnumFields())
         {
-            yield return member.DocumentationComment ?? "";
+            foreach (var docLine in DocumentationFormatter.ToDocumentationLines(member.DocumentationComment))
+            {
+                yield return docLine;
+            }
+
             yield return $"public const string {member.Name} = {CodeLiteral.String(member.Name)};";
         }
     }
@@ -199,7 +203,11 @@ public class EnumToClassGenerator : IIncrementalGenerator
     {
         foreach (var member in data.GetEnumFields())
         {
-            yield return member.DocumentationComment ?? "";
+            foreach (var docLine in DocumentationFormatter.ToDocumentationLines(member.DocumentationComment))
+            {
+                yield return docLine;
+            }
+
             yield return $"public static {data.ClassName} {member.Name}Instance {{ get; }} = ValueByNameMap[{CodeLiteral.String(member.Name)}];";
         }
     }

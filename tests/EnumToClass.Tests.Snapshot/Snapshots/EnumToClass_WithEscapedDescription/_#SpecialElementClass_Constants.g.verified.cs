@@ -15,23 +15,23 @@ namespace VRT.Generators.Tests
         public static SpecialElementClass Empty { get; } = ValueByNameMap["Quoted"];
 
         /// <summary>
-/// He said "hi"
-                /// and left
-/// </summary>
+        /// He said "hi"
+        /// and left
+        /// </summary>
         public const string Quoted = "Quoted";
         /// <summary>
-/// plain
-/// </summary>
+        /// plain
+        /// </summary>
         public const string Plain = "Plain";
 
         /// <summary>
-/// He said "hi"
-                /// and left
-/// </summary>
+        /// He said "hi"
+        /// and left
+        /// </summary>
         public static SpecialElementClass QuotedInstance { get; } = ValueByNameMap["Quoted"];
         /// <summary>
-/// plain
-/// </summary>
+        /// plain
+        /// </summary>
         public static SpecialElementClass PlainInstance { get; } = ValueByNameMap["Plain"];
     }
 }

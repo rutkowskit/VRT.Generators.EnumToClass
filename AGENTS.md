@@ -69,6 +69,7 @@ Defined in `src/EnumToClass/EnumToClassDiagnostics.cs`. RS2008 (analyzer release
 | String literals | `Helpers/CodeLiteral.cs` |
 | Partial / accessibility / attribute args | `Helpers/NamedTypeSymbolExtensions.cs` |
 | XML docs / DescriptionAttribute | `Helpers/FieldSymbolExtensions.cs` |
+| Doc comment line normalization for emission | `Helpers/DocumentationFormatter.cs` |
 | Snapshot harness (includes **generator** diagnostics via `driver.GetRunResult().Diagnostics`) | `tests/.../Tests.Default.cs` → `CheckSourceCode` |
 
 ### Generated code conventions
@@ -89,6 +90,7 @@ Plan file: `plans/enum-to-class-hardening.md`.
 | 3 P2 quality/hygiene | **Complete** | ETC001/002, global::, dead code, CI, README, LangVersion |
 | 4 P3 test matrix | **Complete** | byte underlying, case sensitivity, non-partial snapshot, docs for Flags |
 | 5 Nested diagnostic | **Complete** | ETC003 on nested hosts; skip generation; snapshot + README |
+| 6 Doc indent polish | **Complete** | `DocumentationFormatter`; consistent `///` indent in generated members |
 
 **Final Recap / Deployment Plan** are filled in the plan file.
 
@@ -96,7 +98,6 @@ Plan file: `plans/enum-to-class-hardening.md`.
 
 - Nested host type **full generation** (outer partial wrapping) — only ETC003 today.
 - Flags-aware parsing.
-- XML documentation comment indentation polish in generated members.
 - Analyzer release-tracking files (RS2008 suppressed instead).
 
 ## Verification commands
@@ -174,6 +175,15 @@ and do not emit partial sources that would land at namespace scope.
 Add snapshot coverage and document ETC003 in README.
 ```
 
+### Phase 6 — documentation indentation
+
+```
+fix(generator): normalize XML doc comment indentation in generated members
+
+Format each documentation line as a clean /// token and emit line-by-line
+so class-member indent applies consistently. Update Constants snapshots.
+```
+
 ### Rollup (historical — phases 1–4 already committed by user)
 
 ```
@@ -195,6 +205,7 @@ Also add AGENTS.md for multi-session agent handoff.
 | Hardening session | User clarified: **agent never creates commits** — only propose the message; user reviews and makes a **collective commit per plan phase**. |
 | Hardening session | User committed rollup for phases 1–4 on `feature/enum-to-class-hardening`. |
 | Hardening session | Phase 5: ETC003 nested host diagnostic implemented and verified (48 integration + 6 snapshot Release). |
+| Hardening session | Phase 6: XML doc indent polish via DocumentationFormatter; snapshots updated; Release tests green. |
 
 ## How to resume in a new session
 

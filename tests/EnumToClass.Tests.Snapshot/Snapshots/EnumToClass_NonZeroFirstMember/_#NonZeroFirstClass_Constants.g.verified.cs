@@ -16,29 +16,29 @@ namespace VRT.Generators.Tests
         public static NonZeroFirstClass Empty { get; } = ValueByNameMap["Zero"];
 
         /// <summary>
-/// Alpha
-/// </summary>
+        /// Alpha
+        /// </summary>
         public const string Alpha = "Alpha";
         /// <summary>
-/// Beta
-/// </summary>
+        /// Beta
+        /// </summary>
         public const string Beta = "Beta";
         /// <summary>
-/// Zero
-/// </summary>
+        /// Zero
+        /// </summary>
         public const string Zero = "Zero";
 
         /// <summary>
-/// Alpha
-/// </summary>
+        /// Alpha
+        /// </summary>
         public static NonZeroFirstClass AlphaInstance { get; } = ValueByNameMap["Alpha"];
         /// <summary>
-/// Beta
-/// </summary>
+        /// Beta
+        /// </summary>
         public static NonZeroFirstClass BetaInstance { get; } = ValueByNameMap["Beta"];
         /// <summary>
-/// Zero
-/// </summary>
+        /// Zero
+        /// </summary>
         public static NonZeroFirstClass ZeroInstance { get; } = ValueByNameMap["Zero"];
     }
 }

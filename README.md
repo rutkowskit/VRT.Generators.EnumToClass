@@ -89,6 +89,7 @@ For a partial class host the generator emits (among other members):
 3. Enum members filtered to static constant fields only (excludes metadata `value__`).
 4. `IEquatable<T>` and `==` / `!=` for class hosts; `TryGetByName`.
 5. Diagnostics `ETC001` / `ETC002` / `ETC003` (nested host); `global::` qualified BCL types in generated code.
+6. Normalize indentation of copied XML documentation comments on generated const / instance members.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.
