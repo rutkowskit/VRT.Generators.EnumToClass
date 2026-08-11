@@ -47,7 +47,7 @@ Do **not** implement unless the user opens scope (new or existing plan).
 | Flags-aware parsing | Combined flags → `Empty` today. See `plans/enum-to-class-hardening.md` |
 | JsonConverter / TypeConverter | Not designed |
 | Other smart-enum API | e.g. `GetByValue` / case-insensitive names — only if requested |
-| Multi-attribute-per-member as list | v1 first-wins for same `T` on one enum field. See `plans/enum-to-class-attribute-properties.md` |
+
 
 ## Product decisions (locked)
 
@@ -61,7 +61,7 @@ Do not re-litigate unless the user overrides.
 6. **`TryGetByName`**: additive; miss → `false` + `Empty`.
 7. Nested hosts: **ETC003**, no generation (until backlog nested work is planned and done).
 8. Flags: `ToString()` lookup only; combined values → `Empty` unless Flags work is implemented.
-9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple`): opt-in projection of enum-member attributes to nullable host properties; optional `Name`; default property name strips `"Attribute"` suffix; slim ctor + object initializers; reconstructible attributes only.
+9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple` on host applications): opt-in projection of enum-member attributes to host properties; optional `Name`; default property name strips `"Attribute"` suffix; optional **`AsArray`** → `TAttribute[]` (else `TAttribute?`); slim ctor + object initializers; reconstructible attributes only.
 
 ## Diagnostics (current)
 

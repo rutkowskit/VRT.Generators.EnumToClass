@@ -11,6 +11,7 @@ Opt-in generation of **nullable properties** on the smart-enum host for **explic
 3. **Optional `Name`:** named argument sets the generated property name.  
    - If omitted: property name = **short name of `TAttribute` without trailing `"Attribute"`** (if no such suffix, use the short name as-is).
 4. **Opt-in only:** properties appear only for types listed via one or more `[EnumToClassProperty<...>]` on the host. No “project all attributes” in v1.
+4b. **`AsArray` (added post-v1 plan):** default `false` → `TAttribute?` (first wins). `true` → `TAttribute[]` (all applications; `Array.Empty<T>()` when none).
 5. **Ctor stays slim:** attribute values assigned via **object initializer** + `{ get; private init; }` (or `private set`), not constructor parameters.
 6. **Equality unchanged:** still by `Value` only; attribute properties do not affect `Equals` / `==`.
 7. **Separate attribute** (not a flag on `EnumToClassAttribute<T>`) so the main marker does not bloat.

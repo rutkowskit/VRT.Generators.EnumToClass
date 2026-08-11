@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Net;
 
@@ -174,5 +174,31 @@ public enum InternalMetaElements
 [VRT.Generators.EnumToClass.EnumToClass<InternalMetaElements>]
 [VRT.Generators.EnumToClass.EnumToClassProperty<InternalMetaAttribute>]
 public sealed partial class InternalMetaElementClass
+{
+}
+
+[AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+public sealed class PermissionAttribute : Attribute
+{
+    public PermissionAttribute(string name) => Name = name;
+
+    public string Name { get; }
+}
+
+public enum RoleTypes
+{
+    [Permission("read")]
+    [Permission("write")]
+    Editor = 0,
+
+    [Permission("read")]
+    Viewer = 1,
+
+    Guest = 2,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<RoleTypes>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions")]
+public sealed partial class RoleTypeClass
 {
 }

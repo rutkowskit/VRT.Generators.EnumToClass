@@ -123,11 +123,20 @@ internal sealed record EnumToClassData
                 continue;
             }
 
+            var asArray = attr.TryGetNamedArgument<bool>(
+                EnumToClassAttributeDefinition.PropertyAttributeAsArrayPropertyName,
+                out var multiple) && multiple;
+
+            var propertyTypeDisplayName = asArray
+                ? attributeTypeFullName + "[]"
+                : attributeTypeFullName;
+
             projections.Add(new AttributePropertyProjection(
                 attributeTypeFullName: attributeTypeFullName,
-                propertyTypeDisplayName: attributeTypeFullName,
+                propertyTypeDisplayName: propertyTypeDisplayName,
                 propertyName: propertyName,
-                accessibility: attributeType.GetAccessibility() is { Length: > 0 } acc ? acc : "public"));
+                accessibility: attributeType.GetAccessibility() is { Length: > 0 } acc ? acc : "public",
+                asArray: asArray));
         }
 
         return (projections, diagnostics);
@@ -209,7 +218,15 @@ internal sealed record EnumToClassData
     {
         foreach (var property in AttributeProperties)
         {
-            yield return $"{property.Accessibility} {property.PropertyTypeDisplayName}? {property.PropertyName} {{ get; private init; }}";
+            // Multiple: T[] with empty default (satisfies nullable analysis). Single: T?
+            if (property.AsArray)
+            {
+                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName} {property.PropertyName} {{ get; private init; }} = global::System.Array.Empty<{property.AttributeTypeFullName}>();";
+            }
+            else
+            {
+                yield return $"{property.Accessibility} {property.PropertyTypeDisplayName}? {property.PropertyName} {{ get; private init; }}";
+            }
         }
     }
 
@@ -251,22 +268,28 @@ internal sealed record EnumToClassData
             string attributeTypeFullName,
             string propertyTypeDisplayName,
             string propertyName,
-            string accessibility)
+            string accessibility,
+            bool asArray)
         {
             AttributeTypeFullName = attributeTypeFullName;
             PropertyTypeDisplayName = propertyTypeDisplayName;
             PropertyName = propertyName;
             Accessibility = accessibility;
+            AsArray = asArray;
         }
 
         public string AttributeTypeFullName { get; }
+        /// <summary>Property type: fully qualified attribute type, or that type with <c>[]</c> when <see cref="AsArray"/>.</summary>
         public string PropertyTypeDisplayName { get; }
         public string PropertyName { get; }
         public string Accessibility { get; }
+        public bool AsArray { get; }
     }
 
     /// <summary>
-    /// Per-member value for a projected attribute property (<see cref="CreationExpression"/> null ⇒ assign null).
+    /// Per-member value for a projected attribute property.
+    /// Single mode: <see cref="CreationExpression"/> null ⇒ assign null.
+    /// Multiple mode: always a non-null array expression (possibly <c>Array.Empty&lt;T&gt;()</c>).
     /// </summary>
     public sealed class AttributePropertyAssignment
     {
@@ -356,30 +379,75 @@ internal sealed record EnumToClassData
 
             foreach (var projection in projections)
             {
-                AttributeData? match = null;
-                foreach (var candidate in fieldAttributes)
-                {
-                    if (candidate.AttributeClass is null)
-                    {
-                        continue;
-                    }
+                list.Add(BuildOneAssignment(fieldAttributes, projection, diagnostics));
+            }
 
-                    if (candidate.AttributeClass.ToDisplayString(FullyQualified) == projection.AttributeTypeFullName)
-                    {
-                        match = candidate;
-                        break;
-                    }
-                }
+            return list;
+        }
 
-                if (match is null)
+        private static AttributePropertyAssignment BuildOneAssignment(
+            IEnumerable<AttributeData> fieldAttributes,
+            AttributePropertyProjection projection,
+            List<PendingDiagnostic> diagnostics)
+        {
+            var matches = new List<AttributeData>();
+            foreach (var candidate in fieldAttributes)
+            {
+                if (candidate.AttributeClass is null)
                 {
-                    list.Add(new AttributePropertyAssignment(projection.PropertyName, creationExpression: null));
                     continue;
                 }
 
+                if (candidate.AttributeClass.ToDisplayString(FullyQualified) == projection.AttributeTypeFullName)
+                {
+                    matches.Add(candidate);
+                    if (projection.AsArray is false)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (projection.AsArray)
+            {
+                return BuildMultipleAssignment(projection, matches, diagnostics);
+            }
+
+            if (matches.Count == 0)
+            {
+                return new AttributePropertyAssignment(projection.PropertyName, creationExpression: null);
+            }
+
+            if (AttributeConstructionEmitter.TryFormat(matches[0], out var expression, out var error))
+            {
+                return new AttributePropertyAssignment(projection.PropertyName, expression);
+            }
+
+            diagnostics.Add(new PendingDiagnostic(
+                EnumToClassDiagnostics.AttributePropertyNotConstructible.Id,
+                projection.AttributeTypeFullName,
+                error ?? "unknown error"));
+            return new AttributePropertyAssignment(projection.PropertyName, creationExpression: null);
+        }
+
+        private static AttributePropertyAssignment BuildMultipleAssignment(
+            AttributePropertyProjection projection,
+            List<AttributeData> matches,
+            List<PendingDiagnostic> diagnostics)
+        {
+            if (matches.Count == 0)
+            {
+                return new AttributePropertyAssignment(
+                    projection.PropertyName,
+                    $"global::System.Array.Empty<{projection.AttributeTypeFullName}>()");
+            }
+
+            var elementExpressions = new List<string>(matches.Count);
+            foreach (var match in matches)
+            {
                 if (AttributeConstructionEmitter.TryFormat(match, out var expression, out var error))
                 {
-                    list.Add(new AttributePropertyAssignment(projection.PropertyName, expression));
+                    elementExpressions.Add(expression);
                 }
                 else
                 {
@@ -387,11 +455,32 @@ internal sealed record EnumToClassData
                         EnumToClassDiagnostics.AttributePropertyNotConstructible.Id,
                         projection.AttributeTypeFullName,
                         error ?? "unknown error"));
-                    list.Add(new AttributePropertyAssignment(projection.PropertyName, creationExpression: null));
                 }
             }
 
-            return list;
+            if (elementExpressions.Count == 0)
+            {
+                return new AttributePropertyAssignment(
+                    projection.PropertyName,
+                    $"global::System.Array.Empty<{projection.AttributeTypeFullName}>()");
+            }
+
+            var sb = new StringBuilder();
+            sb.Append("new ");
+            sb.Append(projection.AttributeTypeFullName);
+            sb.Append("[] { ");
+            for (var i = 0; i < elementExpressions.Count; i++)
+            {
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                }
+
+                sb.Append(elementExpressions[i]);
+            }
+
+            sb.Append(" }");
+            return new AttributePropertyAssignment(projection.PropertyName, sb.ToString());
         }
 
         private static bool IsDefaultEnumConstant(object? constantValue)

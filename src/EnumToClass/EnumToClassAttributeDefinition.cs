@@ -1,4 +1,4 @@
-﻿#pragma warning disable IDE0130 // Namespace does not match folder structure
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace VRT.Generators;
 #pragma warning restore IDE0130 // Namespace does not match folder structure
 
@@ -11,6 +11,7 @@ internal static class EnumToClassAttributeDefinition
 
     public const string PropertyAttributeTypeName = "EnumToClassPropertyAttribute";
     public const string PropertyAttributeNamePropertyName = "Name";
+    public const string PropertyAttributeAsArrayPropertyName = "AsArray";
     public const string PropertyAttributeFullyQualifiedMetadataName = $"{NamespaceName}.{PropertyAttributeTypeName}`1";
 
     public const string SourceCode =
@@ -33,8 +34,8 @@ internal static class EnumToClassAttributeDefinition
         }
 
         /// <summary>
-        /// Projects <typeparamref name="TAttribute"/> from each enum member onto a nullable
-        /// property of the EnumToClass host. Use multiple times for multiple attribute types.
+        /// Projects <typeparamref name="TAttribute"/> from each enum member onto a property
+        /// of the EnumToClass host. Use multiple times for multiple attribute types.
         /// </summary>
         /// <typeparam name="TAttribute">Attribute type applied to enum members.</typeparam>
         [global::System.AttributeUsage(global::System.AttributeTargets.Class, AllowMultiple = true)]
@@ -46,6 +47,12 @@ internal static class EnumToClassAttributeDefinition
             /// Generated property name. Default: type name of TAttribute without "Attribute" suffix.
             /// </summary>
             public string? Name { get; set; }
+
+            /// <summary>
+            /// When true, collects all applications of TAttribute on a member as TAttribute[].
+            /// When false (default), uses the first application as TAttribute? (or null).
+            /// </summary>
+            public bool AsArray { get; set; }
         }
         """;
 }

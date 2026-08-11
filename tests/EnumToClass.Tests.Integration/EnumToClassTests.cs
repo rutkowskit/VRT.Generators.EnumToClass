@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -289,5 +289,27 @@ public sealed class EnumToClassTests
         prop!.GetMethod.Should().NotBeNull();
         prop.GetMethod!.IsAssembly.Should().BeTrue();
         InternalMetaElementClass.AInstance.InternalMeta.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_AsArray_WhenSeveral_ShouldReturnAll()
+    {
+        var sut = RoleTypeClass.EditorInstance;
+        sut.Permissions.Should().HaveCount(2);
+        sut.Permissions.Select(p => p.Name).Should().BeEquivalentTo("read", "write");
+    }
+
+    [Fact]
+    public void AttributeProperties_AsArray_WhenOne_ShouldReturnSingleElementArray()
+    {
+        var sut = RoleTypeClass.ViewerInstance;
+        sut.Permissions.Should().ContainSingle(p => p.Name == "read");
+    }
+
+    [Fact]
+    public void AttributeProperties_AsArray_WhenNone_ShouldReturnEmptyArray()
+    {
+        var sut = RoleTypeClass.GuestInstance;
+        sut.Permissions.Should().NotBeNull().And.BeEmpty();
     }
 }

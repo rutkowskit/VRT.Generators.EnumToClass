@@ -132,6 +132,41 @@ public sealed partial class Tests
     }
 
     [Fact]
+    public Task EnumToClass_AttributeProperties_AsArray()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field, AllowMultiple = true)]
+            public sealed class PermissionAttribute : Attribute
+            {
+                public PermissionAttribute(string name) => Name = name;
+                public string Name { get; }
+            }
+
+            public enum RoleTypes
+            {
+                [Permission("read")]
+                [Permission("write")]
+                Editor,
+                [Permission("read")]
+                Viewer = 1,
+                Guest = 2,
+            }
+
+            [EnumToClass<RoleTypes>]
+            [EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions")]
+            public sealed partial class RoleTypeClass;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
     public Task EnumToClass_DuplicateAttributeProperty_ReportsETC011()
     {
         var sourceCode = """

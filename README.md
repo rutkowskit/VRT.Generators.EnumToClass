@@ -40,6 +40,12 @@ internal sealed class EnumToClassPropertyAttribute<TAttribute> : Attribute
 {
     /// <summary>Generated property name. Default: TAttribute name without "Attribute" suffix.</summary>
     public string? Name { get; set; }
+
+    /// <summary>
+    /// When true, property type is TAttribute[] (all applications on the member; empty array if none).
+    /// When false (default), property type is TAttribute? (first application or null).
+    /// </summary>
+    public bool AsArray { get; set; }
 }
 ```
 
@@ -49,10 +55,16 @@ Example:
 [EnumToClass<TestEnum>]
 [EnumToClassProperty<Metadata1Attribute>]
 [EnumToClassProperty<Metadata2Attribute>(Name = "Meta2")]
+[EnumToClassProperty<PermissionAttribute>(AsArray = true, Name = "Permissions")]
 public sealed partial class TestEnumClass { }
 ```
 
-Generates nullable properties (e.g. `Metadata1Attribute? Metadata1`, `Metadata2Attribute? Meta2`) filled from each enum member’s attributes, or `null` when missing. Values are assigned via object initializers on the static map (constructor stays slim). Only attributes reconstructible from metadata (public ctor + constant args) are supported.
+Generates properties filled from each enum member’s attributes via object initializers on the static map (constructor stays slim):
+
+- **Single** (`AsArray = false`): `TAttribute?` — instance or `null`
+- **Multiple** (`AsArray = true`): `TAttribute[]` — all applications, or `Array.Empty<TAttribute>()` when none
+
+Only attributes reconstructible from metadata (public ctor + constant args) are supported.
 
 Equality still compares **`Value` only** — projected attribute properties do not participate in `Equals` / `==`.
 
@@ -117,7 +129,7 @@ For a partial class host the generator emits (among other members):
 
 ### Version 1.0.8
 1. Hardening: Empty flyweight, escaped literals, constant-only enum members, class `IEquatable`/`==`, `TryGetByName`, `ETC001`–`ETC003`, `global::` BCL types, doc indent, full `<summary>` for `Description`.
-2. **`EnumToClassPropertyAttribute<T>`**: project selected enum-member attributes as nullable host properties (`Name` optional; default strips `Attribute` suffix). Diagnostics `ETC010`–`ETC012`.
+2. **`EnumToClassPropertyAttribute<T>`**: project selected enum-member attributes as host properties (`Name` optional; default strips `Attribute` suffix; **`AsArray`** → `T[]`). Diagnostics `ETC010`–`ETC012`.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.
