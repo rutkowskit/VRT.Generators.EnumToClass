@@ -35,7 +35,11 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
 
 ## Active plan
 
-_None._ (Last completed: [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md).)
+| Plan | Status |
+|------|--------|
+| [`plans/enum-to-class-property-source.md`](plans/enum-to-class-property-source.md) | Not started (feasibility planned; await implement) |
+
+Last completed: [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md).
 
 ## Backlog
 
