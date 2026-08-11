@@ -101,6 +101,23 @@ Plan file: `plans/enum-to-class-hardening.md`.
 - Flags-aware parsing.
 - JsonConverter / TypeConverter.
 
+### Potential future features (backlog — not scheduled)
+
+Recorded for later product decisions. Do **not** implement unless the user opens a new plan/phase.
+
+1. **Full nested host support** (discussed, design notes locked in):
+   - **Not possible** to extend `Outer.Nested` without **nested partials** in generated code (namespace-level `partial class Nested` is a different type).
+   - Roslyn `AddSource` cannot inject into the user’s existing file; only a second partial part with the same nesting path works.
+   - C# rule: if a nested type is partial across files, **containing types must also be partial**.
+   - Implementation sketch if approved: walk `ContainingType` chain → emit nested `partial` wrappers → diagnostics when any ancestor is not `partial` (e.g. ETC004) → keep or refine ETC003 → snapshots for 1–2 nesting levels.
+   - Today: **ETC003** + skip generation remains correct for “unsupported”.
+
+2. **Flags-aware parsing** — map combined flag `ToString()` / bit combinations; currently unknown combined values → `Empty`.
+
+3. **JsonConverter / TypeConverter** — serialize smart-enum types as name or underlying value.
+
+4. **Other smart-enum API** (only if requested): e.g. `GetByValue` / `TryGetByValue`, optional case-insensitive name lookup — not designed yet.
+
 ## Verification commands
 
 ```bash
@@ -218,6 +235,7 @@ Also add AGENTS.md for multi-session agent handoff.
 | Hardening session | Phase 6: XML doc indent polish via DocumentationFormatter; snapshots updated; Release tests green. |
 | Hardening session | Phase 7: full multiline summary for Description; analyzer release tracking; Release 49+6 green. |
 | Hardening session | Confirmed: no more scheduled plan phases; remaining items are deferred product features only. |
+| Hardening session | User: remember nested full support (and related) as **potential future features** only; design note: nested support requires nested partials + partial containers. |
 
 ## How to resume in a new session
 

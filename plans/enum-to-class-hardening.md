@@ -132,7 +132,7 @@ Hardening of `EnumToClass` on branch `feature/enum-to-class-hardening` is **comp
 3. **Quality:** `ETC001`/`ETC002`/`ETC003`, `global::` BCL, hygiene, CI, README, LangVersion, doc indent polish, full summary Description, analyzer release tracking.
 4. **Tests:** edge cases (non-zero first, escapes, byte underlying, case sensitivity, non-partial, nested host, multiline summary).
 
-**No further phases scheduled.** Remaining gaps need an explicit new plan: nested host **generation**, Flags-aware parsing, Json/Type converters.
+**No further phases scheduled.** Potential follow-ups (see `AGENTS.md` → *Potential future features*): nested host **generation** (requires nested partials + partial containers; not doable “flat”), Flags-aware parsing, Json/Type converters. Only after explicit user plan.
 
 ## Phase 6: XML documentation indentation polish
 Status: Complete
