@@ -28,15 +28,11 @@ internal static class FieldSymbolExtensions
         {
             return null;
         }
-        var documentationString = symbol.GetDocumentationCommentXml(expandIncludes: true).ConvertToSummary().NullIfEmpty()
+        var summaryText = symbol.GetDocumentationCommentXml(expandIncludes: true).ConvertToSummary().NullIfEmpty()
             ?? symbol.GetDescriptionAttributeValue().NullIfEmpty()
             ?? symbol.Name;
 
-        return $"""
-                /// <summary>
-                /// {documentationString!.Replace("\n", "\n                /// ")}
-                /// </summary>
-                """;
+        return DocumentationFormatter.FormatSummaryComment(summaryText!);
     }
 
     public static string? GetDescriptionAttributeValue(this IFieldSymbol? symbol)
@@ -100,9 +96,10 @@ internal static class FieldSymbolExtensions
                 return summaryElement.Value.Trim();
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            Console.WriteLine($"Error parsing XML documentation: {ex.Message}");
+            // Ignore
+            // Invalid XML documentation — fall back to empty summary (no console I/O in generators).
         }
 
         return string.Empty;

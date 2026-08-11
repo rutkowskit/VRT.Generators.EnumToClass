@@ -3,9 +3,11 @@ name: .NET Build and Test
 on:
   push:
     branches:
+      - master
       - main
   pull_request:
     branches:
+      - master
       - main
   workflow_dispatch:  # Allows manual trigger
 

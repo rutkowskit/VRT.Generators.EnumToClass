@@ -121,7 +121,11 @@ public sealed partial class Tests
 
         driver = driver
             .RunGeneratorsAndUpdateCompilation(compilation, out compilation, out _, cancellationToken);
-        var diagnostics = compilation.GetDiagnostics(cancellationToken);
+        var runResult = driver.GetRunResult();
+        var diagnostics = compilation.GetDiagnostics(cancellationToken)
+            .Concat(runResult.Diagnostics)
+            .Distinct()
+            .ToImmutableArray();
 
         await Task.WhenAll(
             Verify(NormalizeLocations(diagnostics))

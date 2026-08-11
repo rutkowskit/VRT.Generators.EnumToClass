@@ -61,6 +61,12 @@ public enum TestElements
     Element5,
     // Don't care comment
     Element6,
+
+    /// <summary>
+    /// First line of multi summary.
+    /// Second line of multi summary.
+    /// </summary>
+    Element7,
 }
 
 [VRT.Generators.EnumToClass.EnumToClass<TestElements>]
@@ -75,5 +81,46 @@ public sealed partial record TestElementRecord
 
 [VRT.Generators.EnumToClass.EnumToClass<HttpResponseHeader>]
 public sealed partial class HttpResponseHeaderClass
+{
+}
+
+/// <summary>
+/// First member is not default(0); default is Zero at the end.
+/// </summary>
+public enum NonZeroFirstElements
+{
+    Alpha = 1,
+    Beta = 2,
+    Zero = 0,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<NonZeroFirstElements>]
+public sealed partial class NonZeroFirstElementClass
+{
+}
+
+public enum SpecialDescriptionElements
+{
+    [Description("He said \"hi\"\nand left")]
+    Quoted,
+
+    [Description("plain")]
+    Plain = 1,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<SpecialDescriptionElements>(WithDescription = true)]
+public sealed partial class SpecialDescriptionElementClass
+{
+}
+
+public enum ByteBackedElements : byte
+{
+    None = 0,
+    One = 1,
+    Two = 2,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<ByteBackedElements>]
+public sealed partial class ByteBackedElementClass
 {
 }

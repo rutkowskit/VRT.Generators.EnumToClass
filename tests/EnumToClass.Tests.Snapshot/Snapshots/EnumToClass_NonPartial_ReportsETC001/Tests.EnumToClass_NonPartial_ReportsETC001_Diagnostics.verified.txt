@@ -1,0 +1,22 @@
+﻿[
+  {
+    Location: /*
+[EnumToClass<SimpleEnum>]
+public sealed class NotPartialClass
+                    ^^^^^^^^^^^^^^^
+{
+*/
+ : (13,20)-(13,35),
+    Message: Type 'NotPartialClass' decorated with EnumToClassAttribute must be declared partial,
+    Severity: Error,
+    Descriptor: {
+      Id: ETC001,
+      Title: Type must be partial,
+      Description: Source generation requires a partial class or record so members can be added in generated files.,
+      MessageFormat: Type '{0}' decorated with EnumToClassAttribute must be declared partial,
+      Category: EnumToClass,
+      DefaultSeverity: Error,
+      IsEnabledByDefault: true
+    }
+  }
+]

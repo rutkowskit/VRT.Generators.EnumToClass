@@ -134,6 +134,7 @@ public sealed class EnumToClassTests
     [InlineData(TestElements.Element4, "This test element calculates the factorial of a given non-negative integer.")]
     [InlineData(TestElements.Element5, "The fifth element")]
     [InlineData(TestElements.Element6, nameof(TestElements.Element6))]
+    [InlineData(TestElements.Element7, "First line of multi summary.\nSecond line of multi summary.")]
     public void Generated_WithDescription_ShouldHaveCorrectDescription(TestElements element, string expectedDescription)
     {
         TestElementRecord sut = element;
@@ -142,7 +143,6 @@ public sealed class EnumToClassTests
 
 
     [Fact]
-
     public void Generated_WhenTestElementClass_ShouldContainInstanceStaticFields()
     {
         TestElementClass.Element1Instance.Value.Should().Be(TestElements.Element1);
@@ -151,5 +151,97 @@ public sealed class EnumToClassTests
         TestElementClass.Element4Instance.Value.Should().Be(TestElements.Element4);
         TestElementClass.Element5Instance.Value.Should().Be(TestElements.Element5);
         TestElementClass.Element6Instance.Value.Should().Be(TestElements.Element6);
+        TestElementClass.Element7Instance.Value.Should().Be(TestElements.Element7);
+    }
+
+    [Fact]
+    public void Empty_WhenDefaultIsNamed_ShouldBeSameInstanceAsDefaultMember()
+    {
+        ReferenceEquals(TestElementClass.Empty, TestElementClass.NoneInstance).Should().BeTrue();
+        ReferenceEquals(TestElementClass.Empty, TestElementClass.GetByName("missing")).Should().BeTrue();
+        TestElementClass.Empty.IsEmpty.Should().BeTrue();
+        TestElementClass.Empty.Value.Should().Be(default(TestElements));
+    }
+
+    [Fact]
+    public void Empty_WhenFirstMemberIsNotDefault_ShouldUseDefaultValueNotFirstField()
+    {
+        NonZeroFirstElementClass.Empty.Value.Should().Be(NonZeroFirstElements.Zero);
+        NonZeroFirstElementClass.Empty.IsEmpty.Should().BeTrue();
+        NonZeroFirstElementClass.AlphaInstance.IsEmpty.Should().BeFalse();
+        ReferenceEquals(NonZeroFirstElementClass.Empty, NonZeroFirstElementClass.ZeroInstance).Should().BeTrue();
+        ReferenceEquals(NonZeroFirstElementClass.GetByName("nope"), NonZeroFirstElementClass.Empty).Should().BeTrue();
+    }
+
+    [Fact]
+    public void Description_WhenContainsQuotesAndNewlines_ShouldRoundTrip()
+    {
+        SpecialDescriptionElementClass.QuotedInstance.Description.Should().Be("He said \"hi\"\nand left");
+        SpecialDescriptionElementClass.PlainInstance.Description.Should().Be("plain");
+    }
+
+    [Fact]
+    public void Flyweight_WhenConvertedViaDifferentPaths_ShouldReturnSameInstance()
+    {
+        TestElementClass fromEnum = TestElements.Element2;
+        TestElementClass fromName = TestElementClass.GetByName(nameof(TestElements.Element2));
+        TestElementClass fromInstance = TestElementClass.Element2Instance;
+        TestElementClass fromConstString = TestElementClass.Element2;
+
+        ReferenceEquals(fromEnum, fromName).Should().BeTrue();
+        ReferenceEquals(fromEnum, fromInstance).Should().BeTrue();
+        ReferenceEquals(fromEnum, fromConstString).Should().BeTrue();
+    }
+
+    [Fact]
+    public void EqualityOperators_WhenSameValue_ShouldBeEqual()
+    {
+        var a = TestElementClass.Element1Instance;
+        var b = TestElementClass.GetByName(nameof(TestElements.Element1));
+        (a == b).Should().BeTrue();
+        (a != b).Should().BeFalse();
+        a.Equals(b).Should().BeTrue();
+    }
+
+    [Fact]
+    public void EqualityOperators_WhenDifferentValue_ShouldNotBeEqual()
+    {
+        (TestElementClass.Element1Instance == TestElementClass.Element2Instance).Should().BeFalse();
+        (TestElementClass.Element1Instance != TestElementClass.Element2Instance).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryGetByName_WhenExists_ShouldReturnTrueAndInstance()
+    {
+        var ok = TestElementClass.TryGetByName(nameof(TestElements.Element3), out var value);
+        ok.Should().BeTrue();
+        value.Value.Should().Be(TestElements.Element3);
+        ReferenceEquals(value, TestElementClass.Element3Instance).Should().BeTrue();
+    }
+
+    [Fact]
+    public void TryGetByName_WhenMissing_ShouldReturnFalseAndEmpty()
+    {
+        var ok = TestElementClass.TryGetByName("does-not-exist", out var value);
+        ok.Should().BeFalse();
+        ReferenceEquals(value, TestElementClass.Empty).Should().BeTrue();
+    }
+
+    [Fact]
+    public void UnderlyingByte_WhenConverted_ShouldRoundTrip()
+    {
+        ByteBackedElementClass sut = ByteBackedElements.Two;
+        byte raw = sut;
+        raw.Should().Be(2);
+        ByteBackedElementClass back = raw;
+        back.Value.Should().Be(ByteBackedElements.Two);
+        ReferenceEquals(back, ByteBackedElementClass.TwoInstance).Should().BeTrue();
+    }
+
+    [Fact]
+    public void GetByName_IsCaseSensitive()
+    {
+        TestElementClass.GetByName("element1").IsEmpty.Should().BeTrue();
+        TestElementClass.GetByName("Element1").Value.Should().Be(TestElements.Element1);
     }
 }
