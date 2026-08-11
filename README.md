@@ -25,7 +25,7 @@ internal sealed class EnumToClassAttribute<T> : global::System.Attribute
 
 1. `WithDescription` — when `true`, generates a `Description` property. Value resolution order:
    1. `DescriptionAttribute` on the enum field, if present
-   2. First line of the XML documentation `<summary>`, if present
+   2. Full text of the XML documentation `<summary>` (all lines, newline-separated), if present
    3. The enum member name
 
 ## Diagnostics
@@ -90,6 +90,7 @@ For a partial class host the generator emits (among other members):
 4. `IEquatable<T>` and `==` / `!=` for class hosts; `TryGetByName`.
 5. Diagnostics `ETC001` / `ETC002` / `ETC003` (nested host); `global::` qualified BCL types in generated code.
 6. Normalize indentation of copied XML documentation comments on generated const / instance members.
+7. `Description` uses the full XML `<summary>` text (all lines); analyzer release tracking for ETC001–ETC003.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.

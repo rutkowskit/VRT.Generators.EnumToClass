@@ -1,5 +1,6 @@
 using EnumToClass.Helpers;
 using Microsoft.CodeAnalysis;
+using System.Text;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace VRT.Generators;
@@ -172,16 +173,104 @@ internal sealed record EnumToClassData
             };
         }
 
+        private static readonly char[] NewLineChars = { '\r', '\n' };
+
+        /// <summary>
+        /// Extracts full <c>&lt;summary&gt;</c> text (all lines), not only the first line.
+        /// </summary>
         private static string? GetCommentSummary(string? documentationComment)
         {
-            var result = documentationComment?
-                .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries)
-                .Select(l => l.Trim())
-                .SkipWhile(l => l.Contains("<summary>") is false)
-                .Skip(1)
-                .Select(l => l.TrimStart(['/', ' ', '\t']))
-                .FirstOrDefault();
-            return result;
+            if (string.IsNullOrWhiteSpace(documentationComment))
+            {
+                return null;
+            }
+
+            var lines = documentationComment!.Split(NewLineChars, StringSplitOptions.RemoveEmptyEntries);
+            var sb = new StringBuilder();
+            var inSummary = false;
+
+            for (var i = 0; i < lines.Length; i++)
+            {
+                var line = StripDocPrefix(lines[i]);
+                if (!inSummary)
+                {
+                    const string open = "<summary>";
+                    var openIndex = IndexOfIgnoreCase(line, open);
+                    if (openIndex < 0)
+                    {
+                        continue;
+                    }
+
+                    inSummary = true;
+                    var afterOpen = line.Substring(openIndex + open.Length).Trim();
+                    if (TryTakeUntilCloseSummary(afterOpen, sb))
+                    {
+                        break;
+                    }
+
+                    AppendSummaryLine(sb, afterOpen);
+                    continue;
+                }
+
+                if (TryTakeUntilCloseSummary(line, sb))
+                {
+                    break;
+                }
+
+                AppendSummaryLine(sb, line);
+            }
+
+            return sb.Length == 0 ? null : sb.ToString();
         }
+
+        private static string StripDocPrefix(string rawLine)
+        {
+            var line = rawLine.Trim();
+            if (line.StartsWith("///", StringComparison.Ordinal))
+            {
+                return line.Substring(3).TrimStart();
+            }
+
+            if (line.StartsWith("//", StringComparison.Ordinal))
+            {
+                return line.Substring(2).TrimStart();
+            }
+
+            return line;
+        }
+
+        /// <summary>
+        /// If <paramref name="line"/> contains <c>&lt;/summary&gt;</c>, append text before it and return true (done).
+        /// </summary>
+        private static bool TryTakeUntilCloseSummary(string line, StringBuilder sb)
+        {
+            const string close = "</summary>";
+            var closeIndex = IndexOfIgnoreCase(line, close);
+            if (closeIndex < 0)
+            {
+                return false;
+            }
+
+            AppendSummaryLine(sb, line.Substring(0, closeIndex).TrimEnd());
+            return true;
+        }
+
+        private static void AppendSummaryLine(StringBuilder sb, string line)
+        {
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return;
+            }
+
+            if (sb.Length > 0)
+            {
+                sb.Append('\n');
+            }
+
+            sb.Append(line.Trim());
+        }
+
+        private static int IndexOfIgnoreCase(string text, string value)
+            => text.IndexOf(value, StringComparison.OrdinalIgnoreCase);
     };
 }

@@ -149,6 +149,22 @@ Status: Complete
 ### Phase Summary
 Root cause was multi-line doc strings joined with only inter-item newlines, so internal lines kept source indent. Fixed by line-wise yield + trim. Release: 48 integration + 6 snapshot OK.
 
+## Phase 7: Full summary Description + analyzer release tracking
+Status: Complete
+
+- [x] Extract **full** XML `<summary>` text for `Description` (all lines, newline-separated), not only the first line.
+- [x] Efficient single-pass parser (StringBuilder), no LINQ chain.
+- [x] Integration coverage for multiline summary without `DescriptionAttribute`.
+- [x] Add `AnalyzerReleases.Shipped.md` / `Unshipped.md` for ETC001–ETC003; remove RS2008 suppress.
+- [x] Document Description cascade in README.
+
+### Verification Plan
+- `dotnet test -c Release` — all green (no RS2008 warnings).
+- Integration: multiline summary member Description matches both lines.
+
+### Phase Summary
+`GetCommentSummary` rewritten; Element7 test. Analyzer release tracking files wired as AdditionalFiles. Release: 49 integration + 6 snapshot OK.
+
 ## Deployment Plan
 1. Review diff on `feature/enum-to-class-hardening`; merge to `master` (or PR).
 2. On clean tree: `dotnet test -c Release`.

@@ -91,6 +91,7 @@ Plan file: `plans/enum-to-class-hardening.md`.
 | 4 P3 test matrix | **Complete** | byte underlying, case sensitivity, non-partial snapshot, docs for Flags |
 | 5 Nested diagnostic | **Complete** | ETC003 on nested hosts; skip generation; snapshot + README |
 | 6 Doc indent polish | **Complete** | `DocumentationFormatter`; consistent `///` indent in generated members |
+| 7 Description summary + RS2008 | **Complete** | Full multiline `<summary>` for Description; analyzer release tracking files |
 
 **Final Recap / Deployment Plan** are filled in the plan file.
 
@@ -98,7 +99,7 @@ Plan file: `plans/enum-to-class-hardening.md`.
 
 - Nested host type **full generation** (outer partial wrapping) — only ETC003 today.
 - Flags-aware parsing.
-- Analyzer release-tracking files (RS2008 suppressed instead).
+- JsonConverter / TypeConverter.
 
 ## Verification commands
 
@@ -184,6 +185,15 @@ Format each documentation line as a clean /// token and emit line-by-line
 so class-member indent applies consistently. Update Constants snapshots.
 ```
 
+### Phase 7 — full summary Description + release tracking
+
+```
+feat(generator): use full XML summary for Description; track analyzer releases
+
+Parse all lines inside <summary> for WithDescription values (newline-separated).
+Add AnalyzerReleases.Shipped/Unshipped for ETC001–ETC003 and drop RS2008 suppress.
+```
+
 ### Rollup (historical — phases 1–4 already committed by user)
 
 ```
@@ -206,6 +216,7 @@ Also add AGENTS.md for multi-session agent handoff.
 | Hardening session | User committed rollup for phases 1–4 on `feature/enum-to-class-hardening`. |
 | Hardening session | Phase 5: ETC003 nested host diagnostic implemented and verified (48 integration + 6 snapshot Release). |
 | Hardening session | Phase 6: XML doc indent polish via DocumentationFormatter; snapshots updated; Release tests green. |
+| Hardening session | Phase 7: full multiline summary for Description; analyzer release tracking; Release 49+6 green. |
 
 ## How to resume in a new session
 

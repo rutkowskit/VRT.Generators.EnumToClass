@@ -134,6 +134,7 @@ public sealed class EnumToClassTests
     [InlineData(TestElements.Element4, "This test element calculates the factorial of a given non-negative integer.")]
     [InlineData(TestElements.Element5, "The fifth element")]
     [InlineData(TestElements.Element6, nameof(TestElements.Element6))]
+    [InlineData(TestElements.Element7, "First line of multi summary.\nSecond line of multi summary.")]
     public void Generated_WithDescription_ShouldHaveCorrectDescription(TestElements element, string expectedDescription)
     {
         TestElementRecord sut = element;
@@ -150,6 +151,7 @@ public sealed class EnumToClassTests
         TestElementClass.Element4Instance.Value.Should().Be(TestElements.Element4);
         TestElementClass.Element5Instance.Value.Should().Be(TestElements.Element5);
         TestElementClass.Element6Instance.Value.Should().Be(TestElements.Element6);
+        TestElementClass.Element7Instance.Value.Should().Be(TestElements.Element7);
     }
 
     [Fact]

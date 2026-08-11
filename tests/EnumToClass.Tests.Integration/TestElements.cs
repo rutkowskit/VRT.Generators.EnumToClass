@@ -61,6 +61,12 @@ public enum TestElements
     Element5,
     // Don't care comment
     Element6,
+
+    /// <summary>
+    /// First line of multi summary.
+    /// Second line of multi summary.
+    /// </summary>
+    Element7,
 }
 
 [VRT.Generators.EnumToClass.EnumToClass<TestElements>]
