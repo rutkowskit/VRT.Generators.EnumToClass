@@ -13,11 +13,22 @@
 	</ItemGroup>
 
 	<ItemGroup>		
-		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj"/>		
+		<ProjectReference Include="..\..\src\EnumToClass\EnumToClass.csproj" />		
 	</ItemGroup>
 
 	<ItemGroup>
 		<Using Include="Xunit" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Update="coverlet.collector">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
+	  <PackageReference Update="xunit.runner.visualstudio">
+	    <PrivateAssets>all</PrivateAssets>
+	    <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+	  </PackageReference>
 	</ItemGroup>
 
 </Project>

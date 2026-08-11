@@ -19,16 +19,24 @@
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
         <PackageIcon>nuget_icon.png</PackageIcon>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <!-- Explicit repo metadata for NuGet (Source Link / pack); not from MinVer. -->
+        <!--
+          PackageProjectUrl → nuspec <projectUrl> — this is what Visual Studio NuGet UI typically shows.
+          RepositoryUrl → nuspec <repository url=...> — Source Link / tooling; VS often does not surface it as "Project URL".
+        -->
+        <PackageProjectUrl>https://github.com/rutkowskit/VRT.Generators.EnumToClass</PackageProjectUrl>
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/rutkowskit/VRT.Generators.EnumToClass.git</RepositoryUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
     </PropertyGroup>
 
-    <!-- GitHub Actions: short branch/tag name (e.g. master), not refs/heads/... -->
-    <PropertyGroup Condition="'$(GITHUB_REF_NAME)' != ''">
-        <RepositoryBranch>$(GITHUB_REF_NAME)</RepositoryBranch>
-    </PropertyGroup>
+    <!-- After SourceLink fills RepositoryBranch, strip refs/heads|tags/ for a short name. -->
+    <Target Name="NormalizeRepositoryBranch"
+            BeforeTargets="GenerateNuspec"
+            Condition="'$(RepositoryBranch)' != ''">
+        <PropertyGroup>
+            <RepositoryBranch>$(RepositoryBranch.Replace('refs/heads/', '').Replace('refs/tags/', ''))</RepositoryBranch>
+        </PropertyGroup>
+    </Target>
     
     <ItemGroup Label="Nuget">
         <None Include="$(MSBuildThisFileDirectory)../assets/nuget_icon.png" Pack="true" PackagePath="\" Visible="false" />
