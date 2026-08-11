@@ -9,9 +9,10 @@ decisions, anything needed to continue with zero context); run the phase's
 **Verification Plan** and record the result before moving on. When all phases are
 done, fill in **Final Recap** and **Deployment Plan**.
 
-**After each phase is Complete:** propose a git commit (subject + body) to the user;
-only create the commit if they confirm. Keep root **`AGENTS.md`** (English) updated
-with decisions and session notes so new sessions can resume without chat history.
+**After each phase is Complete:** propose a **git commit message only** (subject + body)
+for the user’s collective phase commit. **Agents must never run `git commit`** — the
+human reviews and commits. Keep root **`AGENTS.md`** (English) updated with decisions
+and session notes so new sessions can resume without chat history.
 
 ### Context (zero prior knowledge)
 - Repo root: `VRT.Generators.EnumToClass` (branch historically `master`).

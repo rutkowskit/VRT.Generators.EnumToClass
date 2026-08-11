@@ -18,15 +18,18 @@ Durable context for humans and coding agents. **Update this file** when decision
 ## Agent process (mandatory)
 
 1. **Plan file** is authoritative for multi-phase work: checkboxes, phase status, Phase Summary, Final Recap, Deployment Plan (`plans/*.md`, real-work style).
-2. **After each phase is Complete** (verification green + Phase Summary written):
-   - Propose a **git commit** to the user (subject + body). Do not invent secrets; follow repo commit style.
-   - Only create the commit when the user explicitly asks to commit (or confirms the proposed message).
-   - Prefer **one commit per completed phase** when the working tree can be staged cleanly; if work was done in bulk, propose a practical split or a single rollup and note what belongs to which phase.
+2. **Git commits — agent NEVER creates commits.**
+   - Do **not** run `git commit`, `git commit --amend`, or any command that creates/amends commits.
+   - Do **not** stage-and-commit even if the user says “commit this” in a generic way aimed at other tools; for this repo the human owns all commits.
+   - **After each plan phase is Complete** (verification green + Phase Summary written): propose only the **commit message** (subject + body) for a **single collective commit covering that phase**.
+   - The user reviews the work and creates that phase commit themselves.
+   - Message style: complete sentences, repo-conventional prefixes (`fix`/`feat`/`chore`/`test`) when helpful; no secrets; no co-author trailers unless the user asks.
 3. **Keep this `AGENTS.md` updated** in the same session when you:
    - lock a design decision,
    - finish or cancel a phase item,
    - discover a deferred gap,
-   - change branch/release process.
+   - change branch/release process,
+   - change commit/process rules (like this section).
 4. Language for this file: **English**. User chat may be Polish; durable agent notes stay English.
 
 ## Product decisions (locked)
@@ -112,12 +115,11 @@ Accept Verify snapshots by renaming `*.received.*` → `*.verified.*` after inte
 - Release: tag `v*.*.*` → `.github/workflows/release.yml` (MinVer prefix `v`).
 - `LangVersion`: `latest` (root `Directory.Build.props`).
 
-## Proposed git commits (post-phase)
+## Proposed commit messages (agent proposes only; human commits)
 
-Use these when the user asks to commit. If the tree is one mixed diff, either:
+**Rule:** Agent never runs `git commit`. After a phase is done, paste a ready-to-use message for the user’s **one collective commit for that phase**.
 
-- **Option A (preferred if staging is easy):** four commits in order below, or  
-- **Option B:** one rollup commit with a body listing all four phases.
+If several phases landed in one working tree before the first human commit, the user may instead make one rollup commit; agent still only suggests text.
 
 ### Phase 1 — correctness
 
@@ -160,7 +162,7 @@ non-partial ETC001; document Flags and nested-type limitations.
 Merge generator diagnostics into snapshot harness.
 ```
 
-### Rollup alternative (single commit)
+### Rollup (all phases 1–4 in one human commit)
 
 ```
 feat(generator): harden EnumToClass Empty, equality, diagnostics, and tests
@@ -168,6 +170,7 @@ feat(generator): harden EnumToClass Empty, equality, diagnostics, and tests
 Implement review plan P0–P3: default Empty flyweight, escaped literals,
 constant-only members, class IEquatable/==, TryGetByName, ETC001/ETC002,
 global:: BCL types, CI/docs hygiene, and expanded integration/snapshot tests.
+Also add AGENTS.md for multi-session agent handoff.
 ```
 
 ## Session changelog (agent notes)
@@ -176,11 +179,13 @@ global:: BCL types, CI/docs hygiene, and expanded integration/snapshot tests.
 |------|------|
 | Hardening session | Full technical review completed; plan written under `plans/enum-to-class-hardening.md`. |
 | Hardening session | Branch `feature/enum-to-class-hardening` created; phases 1–4 implemented and verified (Release: 48 integration + 5 snapshot). |
-| Hardening session | User asked: after each completed phase propose a git commit; create/maintain English `AGENTS.md` with agreements for new sessions. |
+| Hardening session | User asked: after each completed phase propose a git commit message; create/maintain English `AGENTS.md`. |
+| Hardening session | User clarified: **agent never creates commits** — only propose the message; user reviews and makes a **collective commit per plan phase**. |
 
 ## How to resume in a new session
 
 1. Read this file and `plans/enum-to-class-hardening.md`.
 2. `git status` / current branch — expect `feature/enum-to-class-hardening` until merged.
-3. If plan phases are Complete but commits missing → propose/create commits using messages above (user must confirm commit).
+3. If plan phases are Complete but commits missing → propose commit **messages** only; user commits after review.
 4. Next product work: only deferred items or new user scope; do not reopen locked decisions without asking.
+5. Never create git commits in this repository on the user’s behalf.
