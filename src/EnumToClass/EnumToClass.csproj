@@ -18,9 +18,12 @@
 		<NoPackageAnalysis>true</NoPackageAnalysis>
 	</PropertyGroup>
 
+	<ItemGroup>
+	  <None Remove="bin\Debug\netstandard2.0\\EnumToClass.dll" />
+	</ItemGroup>
+
 	<ItemGroup>		
-		<None Include="$(OutputPath)\$(AssemblyName).dll" 
-			  Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />		
+		<None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />		
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
