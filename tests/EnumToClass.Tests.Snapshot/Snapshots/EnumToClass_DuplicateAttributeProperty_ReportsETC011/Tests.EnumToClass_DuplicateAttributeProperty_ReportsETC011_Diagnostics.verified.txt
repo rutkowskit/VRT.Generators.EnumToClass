@@ -1,0 +1,20 @@
+﻿[
+  {
+    Location: /*
+[EnumToClassProperty<MetaAttribute>]
+public sealed partial class Host;
+                            ^^^^
+*/
+ : (15,28)-(15,32),
+    Message: EnumToClassPropertyAttribute is applied more than once for attribute type 'VRT.Generators.Tests.MetaAttribute',
+    Severity: Error,
+    Descriptor: {
+      Id: ETC011,
+      Title: Duplicate EnumToClassProperty attribute type,
+      MessageFormat: EnumToClassPropertyAttribute is applied more than once for attribute type '{0}',
+      Category: EnumToClass,
+      DefaultSeverity: Error,
+      IsEnabledByDefault: true
+    }
+  }
+]

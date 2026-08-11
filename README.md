@@ -28,6 +28,34 @@ internal sealed class EnumToClassAttribute<T> : global::System.Attribute
    2. Full text of the XML documentation `<summary>` (all lines, newline-separated), if present
    3. The enum member name
 
+### Projecting enum-member attributes as properties
+
+Opt-in companion attribute (can be applied multiple times):
+
+```cs
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+[Conditional("ENUM_TO_CLASS_GENERATOR_ATTRIBUTES")]
+internal sealed class EnumToClassPropertyAttribute<TAttribute> : Attribute
+    where TAttribute : Attribute
+{
+    /// <summary>Generated property name. Default: TAttribute name without "Attribute" suffix.</summary>
+    public string? Name { get; set; }
+}
+```
+
+Example:
+
+```cs
+[EnumToClass<TestEnum>]
+[EnumToClassProperty<Metadata1Attribute>]
+[EnumToClassProperty<Metadata2Attribute>(Name = "Meta2")]
+public sealed partial class TestEnumClass { }
+```
+
+Generates nullable properties (e.g. `Metadata1Attribute? Metadata1`, `Metadata2Attribute? Meta2`) filled from each enum member’s attributes, or `null` when missing. Values are assigned via object initializers on the static map (constructor stays slim). Only attributes reconstructible from metadata (public ctor + constant args) are supported.
+
+Equality still compares **`Value` only** — projected attribute properties do not participate in `Equals` / `==`.
+
 ## Diagnostics
 
 | Id | Severity | Meaning |
@@ -35,6 +63,9 @@ internal sealed class EnumToClassAttribute<T> : global::System.Attribute
 | `ETC001` | Error | Host type is not `partial` |
 | `ETC002` | Warning | Enum has no named members |
 | `ETC003` | Error | Host type is nested (not supported; generation skipped) |
+| `ETC010` | Warning | Attribute type cannot be reconstructed as a property value |
+| `ETC011` | Error | Duplicate `EnumToClassProperty<T>` for the same `T` |
+| `ETC012` | Error | Invalid or conflicting projected property name |
 
 ## Usage
 
@@ -80,17 +111,13 @@ For a partial class host the generator emits (among other members):
 - `public const string MemberName` and `public static T MemberNameInstance` per enum member
 - `GetAll()`, `GetByName`, `TryGetByName`
 - Implicit conversions: `string`, `TEnum`, underlying integral type ↔ host type
+- When using `[EnumToClassProperty<T>]`: nullable properties for those attribute types
 
 ## Change Log
 
-### Version 1.0.8 (hardening)
-1. `Empty` shares identity with the default-named member when present (flyweight).
-2. Escape string literals in generated code (`Description`, map keys).
-3. Enum members filtered to static constant fields only (excludes metadata `value__`).
-4. `IEquatable<T>` and `==` / `!=` for class hosts; `TryGetByName`.
-5. Diagnostics `ETC001` / `ETC002` / `ETC003` (nested host); `global::` qualified BCL types in generated code.
-6. Normalize indentation of copied XML documentation comments on generated const / instance members.
-7. `Description` uses the full XML `<summary>` text (all lines); analyzer release tracking for ETC001–ETC003.
+### Version 1.0.8
+1. Hardening: Empty flyweight, escaped literals, constant-only enum members, class `IEquatable`/`==`, `TryGetByName`, `ETC001`–`ETC003`, `global::` BCL types, doc indent, full `<summary>` for `Description`.
+2. **`EnumToClassPropertyAttribute<T>`**: project selected enum-member attributes as nullable host properties (`Name` optional; default strips `Attribute` suffix). Diagnostics `ETC010`–`ETC012`.
 
 ### Version 1.0.7
 1. Add implicit operator to convert `underlying enum type` value to `Class type`.

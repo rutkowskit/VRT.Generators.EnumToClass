@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 
 namespace EnumToClass.Tests.Integration;
 
@@ -276,5 +277,17 @@ public sealed class EnumToClassTests
         typeof(MetadataElementClass).GetProperty(nameof(MetadataElementClass.Metadata1)).Should().NotBeNull();
         typeof(MetadataElementClass).GetProperty("Metadata1Attribute").Should().BeNull();
         typeof(MetadataElementClass).GetProperty(nameof(MetadataElementClass.Meta2)).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_InternalAttribute_PropertyIsInternal()
+    {
+        var prop = typeof(InternalMetaElementClass).GetProperty(
+            "InternalMeta",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        prop.Should().NotBeNull();
+        prop!.GetMethod.Should().NotBeNull();
+        prop.GetMethod!.IsAssembly.Should().BeTrue();
+        InternalMetaElementClass.AInstance.InternalMeta.Should().NotBeNull();
     }
 }

@@ -209,21 +209,31 @@ Status: Complete
 `GetClassConstruction` appends object initializers; `GetAttributePropertyDeclarationLines` emits properties. Integration `MetadataElementClass` + snapshot `EnumToClass_AttributeProperties`. Release: 53 integration + 7 snapshot OK.
 
 ## Phase 3: Diagnostics polish + docs + release tracking
-Status: Not started
+Status: Complete
 
-- [ ] Finalize ETC010–012 (013 optional); Unshipped analyzer releases.
-- [ ] README + changelog; update AGENTS “planned feature” → implemented when done.
-- [ ] Edge cases: non-constructible attribute, internal attribute type.
+- [x] Finalize ETC010–012; Unshipped analyzer releases (already registered).
+- [x] README + changelog; AGENTS cleaned after plan completion.
+- [x] Edge cases: internal attribute type accessibility; snapshot ETC011 duplicate projection.
 
 ### Verification Plan
 - `dotnet test -c Release`; pack analyzer-only.
 - Snapshot or diagnostic test for at least one error id.
 
 ### Phase Summary
-_(write when phase completes)_
+README documents `EnumToClassPropertyAttribute<T>`, diagnostics table, changelog. Snapshot `EnumToClass_DuplicateAttributeProperty_ReportsETC011`. Integration: internal attribute → internal property. Release: 54 integration + 8 snapshot; pack analyzer-only OK. ETC013 not implemented (optional).
 
 ## Final Recap
-_(write when all phases complete)_
+Delivered opt-in **enum-member attribute → host property** projection:
+
+1. **API:** `[EnumToClassProperty<TAttribute>]` (`AllowMultiple`), optional `Name`; default name strips `Attribute` suffix.
+2. **Model + emitter:** projections, per-member creation expressions, ETC010–012.
+3. **Codegen:** nullable `private init` properties + map object initializers; slim ctor.
+4. **Tests/docs:** integration, snapshots (happy path + ETC011), README.
+
+No breaking changes for hosts without the new attribute.
 
 ## Deployment Plan
-_(write when all phases complete)_
+1. Review branch `feature/enum-to-class-attribute-properties`; open PR → merge to `master`.
+2. `dotnet test -c Release` on clean tree.
+3. Tag when ready (`v1.0.8` or next MinVer) / pack and publish analyzer nupkg.
+4. Confirm package still only ships `analyzers/dotnet/cs/EnumToClass.dll` (+ readme/icon).

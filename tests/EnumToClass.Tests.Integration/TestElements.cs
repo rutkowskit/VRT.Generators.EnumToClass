@@ -159,3 +159,20 @@ public enum MetadataElements
 public sealed partial class MetadataElementClass
 {
 }
+
+[AttributeUsage(AttributeTargets.Field)]
+internal sealed class InternalMetaAttribute : Attribute
+{
+}
+
+public enum InternalMetaElements
+{
+    [InternalMeta]
+    A = 0,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<InternalMetaElements>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<InternalMetaAttribute>]
+public sealed partial class InternalMetaElementClass
+{
+}

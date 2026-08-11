@@ -132,6 +132,30 @@ public sealed partial class Tests
     }
 
     [Fact]
+    public Task EnumToClass_DuplicateAttributeProperty_ReportsETC011()
+    {
+        var sourceCode = """
+            using System;
+            using VRT.Generators.EnumToClass;
+
+            #nullable enable
+
+            namespace VRT.Generators.Tests;
+
+            [AttributeUsage(AttributeTargets.Field)]
+            public sealed class MetaAttribute : Attribute { }
+
+            public enum E { [Meta] A }
+
+            [EnumToClass<E>]
+            [EnumToClassProperty<MetaAttribute>]
+            [EnumToClassProperty<MetaAttribute>]
+            public sealed partial class Host;
+            """;
+        return CheckSourceCode<EnumToClassGenerator>(sourceCode);
+    }
+
+    [Fact]
     public Task EnumToClass_AttributeProperties()
     {
         var sourceCode = """
