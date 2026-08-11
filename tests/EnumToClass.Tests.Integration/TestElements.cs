@@ -1,4 +1,5 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Net;
 
 namespace EnumToClass.Tests.Integration;
@@ -122,5 +123,56 @@ public enum ByteBackedElements : byte
 
 [VRT.Generators.EnumToClass.EnumToClass<ByteBackedElements>]
 public sealed partial class ByteBackedElementClass
+{
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class Metadata1Attribute : Attribute
+{
+    public Metadata1Attribute() { }
+
+    public Metadata1Attribute(string label) => Label = label;
+
+    public string? Label { get; }
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class Metadata2Attribute : Attribute
+{
+}
+
+public enum MetadataElements
+{
+    [Metadata1("alpha")]
+    [Metadata2]
+    Both,
+
+    [Metadata2]
+    OnlySecond = 1,
+
+    Bare = 2,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<MetadataElements>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<Metadata1Attribute>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<Metadata2Attribute>(Name = "Meta2")]
+public sealed partial class MetadataElementClass
+{
+}
+
+[AttributeUsage(AttributeTargets.Field)]
+internal sealed class InternalMetaAttribute : Attribute
+{
+}
+
+public enum InternalMetaElements
+{
+    [InternalMeta]
+    A = 0,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<InternalMetaElements>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<InternalMetaAttribute>]
+public sealed partial class InternalMetaElementClass
 {
 }

@@ -33,4 +33,39 @@ internal static class EnumToClassDiagnostics
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
         description: "Generated partials are emitted at namespace scope and cannot correctly extend nested host types.");
+
+    public static readonly DiagnosticDescriptor AttributePropertyNotConstructible = new(
+        id: "ETC010",
+        title: "Enum member attribute cannot be projected",
+        messageFormat: "Attribute type '{0}' cannot be reconstructed as a property value: {1}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor DuplicateAttributeProperty = new(
+        id: "ETC011",
+        title: "Duplicate EnumToClassProperty attribute type",
+        messageFormat: "EnumToClassPropertyAttribute is applied more than once for attribute type '{0}'",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static readonly DiagnosticDescriptor AttributePropertyNameInvalid = new(
+        id: "ETC012",
+        title: "Invalid or conflicting attribute property name",
+        messageFormat: "{0}",
+        category: Category,
+        defaultSeverity: DiagnosticSeverity.Error,
+        isEnabledByDefault: true);
+
+    public static DiagnosticDescriptor? TryGetDescriptor(string id) => id switch
+    {
+        "ETC001" => TypeMustBePartial,
+        "ETC002" => EnumHasNoMembers,
+        "ETC003" => NestedTypeNotSupported,
+        "ETC010" => AttributePropertyNotConstructible,
+        "ETC011" => DuplicateAttributeProperty,
+        "ETC012" => AttributePropertyNameInvalid,
+        _ => null
+    };
 }

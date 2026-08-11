@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 
 namespace EnumToClass.Tests.Integration;
 
@@ -243,5 +244,50 @@ public sealed class EnumToClassTests
     {
         TestElementClass.GetByName("element1").IsEmpty.Should().BeTrue();
         TestElementClass.GetByName("Element1").Value.Should().Be(TestElements.Element1);
+    }
+
+    [Fact]
+    public void AttributeProperties_WhenBothAttributes_ShouldExposeInstances()
+    {
+        var sut = MetadataElementClass.BothInstance;
+        sut.Metadata1.Should().NotBeNull();
+        sut.Metadata1!.Label.Should().Be("alpha");
+        sut.Meta2.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_WhenOnlySecond_ShouldLeaveFirstNull()
+    {
+        var sut = MetadataElementClass.OnlySecondInstance;
+        sut.Metadata1.Should().BeNull();
+        sut.Meta2.Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_WhenNone_ShouldBeNull()
+    {
+        var sut = MetadataElementClass.BareInstance;
+        sut.Metadata1.Should().BeNull();
+        sut.Meta2.Should().BeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_DefaultName_StripsAttributeSuffix()
+    {
+        typeof(MetadataElementClass).GetProperty(nameof(MetadataElementClass.Metadata1)).Should().NotBeNull();
+        typeof(MetadataElementClass).GetProperty("Metadata1Attribute").Should().BeNull();
+        typeof(MetadataElementClass).GetProperty(nameof(MetadataElementClass.Meta2)).Should().NotBeNull();
+    }
+
+    [Fact]
+    public void AttributeProperties_InternalAttribute_PropertyIsInternal()
+    {
+        var prop = typeof(InternalMetaElementClass).GetProperty(
+            "InternalMeta",
+            BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        prop.Should().NotBeNull();
+        prop!.GetMethod.Should().NotBeNull();
+        prop.GetMethod!.IsAssembly.Should().BeTrue();
+        InternalMetaElementClass.AInstance.InternalMeta.Should().NotBeNull();
     }
 }

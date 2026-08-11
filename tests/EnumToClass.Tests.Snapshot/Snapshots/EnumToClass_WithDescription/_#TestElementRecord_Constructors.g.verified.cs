@@ -18,6 +18,7 @@ namespace VRT.Generators.Tests
 
         public string Description { get; }
         
+        
 
         public override string ToString() => Name;
 

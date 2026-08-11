@@ -17,6 +17,7 @@ namespace VRT.Generators.Tests
         public bool IsEmpty { get; }
 
         public string Description { get; }
+        
         public bool Equals(SpecialElementClass? other)
     => other is not null && other.Value == Value;
 

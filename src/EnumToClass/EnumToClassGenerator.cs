@@ -63,6 +63,20 @@ public class EnumToClassGenerator : IIncrementalGenerator
                     model.ClassName));
             }
 
+            foreach (var pending in model.PendingDiagnostics)
+            {
+                var descriptor = EnumToClassDiagnostics.TryGetDescriptor(pending.DescriptorId);
+                if (descriptor is null)
+                {
+                    continue;
+                }
+
+                ctx.ReportDiagnostic(Diagnostic.Create(
+                    descriptor,
+                    model.Location,
+                    pending.MessageArgs.Cast<object>().ToArray()));
+            }
+
             var classSource = GenerateCodeForEnumMembers(model);
             ctx.AddSource($"{model.ClassName}_Constants.g.cs", SourceText.From(classSource, Encoding.UTF8));
 
@@ -92,6 +106,7 @@ public class EnumToClassGenerator : IIncrementalGenerator
                     public bool IsEmpty { get; }
 
                     {{data.GetDescriptionFieldDeclaration()}}
+                    {{string.Join($"{EndOfLine}                    ", data.GetAttributePropertyDeclarationLines())}}
                     {{GenerateEqualityMembers(data)}}
 
                     public override string ToString() => Name;

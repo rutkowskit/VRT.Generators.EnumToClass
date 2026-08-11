@@ -179,51 +179,61 @@ Mark checkboxes; write Phase Summary when complete; **propose commit message onl
 When **this entire plan** is Complete: remove plan details/phase noise from `AGENTS.md`; keep only backlog leftovers with a link to this plan file if needed (see AGENTS process: plans vs this file).
 
 ## Phase 1: Attribute definition + model
-Status: Not started
+Status: Complete
 
-- [ ] Emit `EnumToClassPropertyAttribute<TAttribute>` via post-initialization (`Conditional`, same namespace as `EnumToClassAttribute`).
-- [ ] Discover host applications; resolve `T`, `Name`, default property name (strip `Attribute`).
-- [ ] Validate duplicates / name collisions / invalid identifiers → diagnostics (may land fully in Phase 3).
-- [ ] Per enum member: find matching `AttributeData` for each `T`; store creation expr or null.
-- [ ] Wire into `EnumToClassData` without changing behavior when no projections.
+- [x] Emit `EnumToClassPropertyAttribute<TAttribute>` via post-initialization (`Conditional`, same namespace as `EnumToClassAttribute`).
+- [x] Discover host applications; resolve `T`, `Name`, default property name (strip `Attribute`).
+- [x] Validate duplicates / name collisions / invalid identifiers → diagnostics (ETC011/ETC012; ETC010 on non-constructible).
+- [x] Per enum member: find matching `AttributeData` for each `T`; store creation expr or null.
+- [x] Wire into `EnumToClassData` without changing behavior when no projections (codegen of properties = Phase 2).
 
 ### Verification Plan
 - `dotnet test` — existing suite green; no snapshot churn for hosts without the new attribute.
 
 ### Phase Summary
-_(write when phase completes)_
+Branch `feature/enum-to-class-attribute-properties`. Post-init emits both attributes in one file (`#nullable enable`). Model: `AttributePropertyProjection`, `AttributePropertyAssignment`, `PendingDiagnostic`; helpers `AttributeConstructionEmitter`, `PropertyNameHelper`. Generator reports pending diagnostics. Property surface not emitted yet. Release: 49 integration + 6 snapshot OK (attribute.g.cs snapshots updated).
 
 ## Phase 2: Codegen
-Status: Not started
+Status: Complete
 
-- [ ] Emit nullable properties (`private init` / `private set`) with correct accessibility.
-- [ ] Map entries: `new Host(enumValue) { Prop = ..., ... }` (and description overload unchanged).
-- [ ] Empty / flyweight still correct with initializers.
-- [ ] Integration + snapshot tests for the metadata example and `Name` override.
+- [x] Emit nullable properties (`private init`) with accessibility from attribute type.
+- [x] Map entries: `new Host(enumValue) { Prop = ..., ... }` (description ctor overload unchanged).
+- [x] Empty / flyweight still correct with initializers (Empty aliases map entry when default named).
+- [x] Integration + snapshot tests for metadata example and `Name` override.
 
 ### Verification Plan
 - Integration asserts property values/nulls; snapshots match expected API.
 - `dotnet test -c Release` green.
 
 ### Phase Summary
-_(write when phase completes)_
+`GetClassConstruction` appends object initializers; `GetAttributePropertyDeclarationLines` emits properties. Integration `MetadataElementClass` + snapshot `EnumToClass_AttributeProperties`. Release: 53 integration + 7 snapshot OK.
 
 ## Phase 3: Diagnostics polish + docs + release tracking
-Status: Not started
+Status: Complete
 
-- [ ] Finalize ETC010–012 (013 optional); Unshipped analyzer releases.
-- [ ] README + changelog; update AGENTS “planned feature” → implemented when done.
-- [ ] Edge cases: non-constructible attribute, internal attribute type.
+- [x] Finalize ETC010–012; Unshipped analyzer releases (already registered).
+- [x] README + changelog; AGENTS cleaned after plan completion.
+- [x] Edge cases: internal attribute type accessibility; snapshot ETC011 duplicate projection.
 
 ### Verification Plan
 - `dotnet test -c Release`; pack analyzer-only.
 - Snapshot or diagnostic test for at least one error id.
 
 ### Phase Summary
-_(write when phase completes)_
+README documents `EnumToClassPropertyAttribute<T>`, diagnostics table, changelog. Snapshot `EnumToClass_DuplicateAttributeProperty_ReportsETC011`. Integration: internal attribute → internal property. Release: 54 integration + 8 snapshot; pack analyzer-only OK. ETC013 not implemented (optional).
 
 ## Final Recap
-_(write when all phases complete)_
+Delivered opt-in **enum-member attribute → host property** projection:
+
+1. **API:** `[EnumToClassProperty<TAttribute>]` (`AllowMultiple`), optional `Name`; default name strips `Attribute` suffix.
+2. **Model + emitter:** projections, per-member creation expressions, ETC010–012.
+3. **Codegen:** nullable `private init` properties + map object initializers; slim ctor.
+4. **Tests/docs:** integration, snapshots (happy path + ETC011), README.
+
+No breaking changes for hosts without the new attribute.
 
 ## Deployment Plan
-_(write when all phases complete)_
+1. Review branch `feature/enum-to-class-attribute-properties`; open PR → merge to `master`.
+2. `dotnet test -c Release` on clean tree.
+3. Tag when ready (`v1.0.8` or next MinVer) / pack and publish analyzer nupkg.
+4. Confirm package still only ships `analyzers/dotnet/cs/EnumToClass.dll` (+ readme/icon).

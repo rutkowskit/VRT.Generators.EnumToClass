@@ -26,7 +26,7 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
      - **Remove** that plan’s details, phase lists, and commit-message drafts from `AGENTS.md`.
      - Do **not** keep a “completed plans” section of narratives here.
      - Leave durable product decisions in *Product decisions* if they still apply.
-     - Move any remaining follow-ups into **Backlog**, with a **reference to the plan** that owned them (if useful), e.g. `plans/enum-to-class-hardening.md`.
+     - Move any remaining follow-ups into **Backlog**, with a **reference to the plan** that owned them (if useful).
 3. **Git commits — agent NEVER creates commits.**
    - Do **not** run `git commit` / `commit --amend` or otherwise create commits.
    - After each plan **phase** is Complete: propose only the **commit message** (subject + body); the human reviews and commits.
@@ -35,11 +35,7 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
 
 ## Active plan
 
-| Plan | Status |
-|------|--------|
-| [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md) | Not started |
-
-Execute only when the user asks to implement / run the plan. Read the plan file for API locks, phases, and verification.
+_None._ (Last completed: [`plans/enum-to-class-attribute-properties.md`](plans/enum-to-class-attribute-properties.md).)
 
 ## Backlog
 
@@ -47,10 +43,11 @@ Do **not** implement unless the user opens scope (new or existing plan).
 
 | Item | Notes / plan ref |
 |------|------------------|
-| Full nested host generation | Needs nested partials + partial containers; today **ETC003**. Design notes in completed hardening plan: `plans/enum-to-class-hardening.md` |
-| Flags-aware parsing | Combined flags → not map keys today (`Empty`). See `plans/enum-to-class-hardening.md` |
+| Full nested host generation | Nested partials + partial containers; today **ETC003**. See `plans/enum-to-class-hardening.md` |
+| Flags-aware parsing | Combined flags → `Empty` today. See `plans/enum-to-class-hardening.md` |
 | JsonConverter / TypeConverter | Not designed |
-| Other smart-enum API | e.g. `GetByValue` / `TryGetByValue`, case-insensitive names — only if requested |
+| Other smart-enum API | e.g. `GetByValue` / case-insensitive names — only if requested |
+| Multi-attribute-per-member as list | v1 first-wins for same `T` on one enum field. See `plans/enum-to-class-attribute-properties.md` |
 
 ## Product decisions (locked)
 
@@ -60,10 +57,11 @@ Do not re-litigate unless the user overrides.
 2. **`Empty`**: same instance as map entry for default-named member when present; else one shared `default(TEnum)` instance. `GetByName` miss → `Empty`.
 3. Generated string literals escaped (`Helpers/CodeLiteral.cs` / `SymbolDisplay.FormatLiteral`).
 4. Enum members: `IsStatic && HasConstantValue` only.
-5. Classes: `IEquatable<T>` + `==`/`!=` by `Value`. Records: no custom Equals.
+5. Classes: `IEquatable<T>` + `==`/`!=` by `Value`. Records: no custom Equals. Attribute properties do **not** affect equality.
 6. **`TryGetByName`**: additive; miss → `false` + `Empty`.
 7. Nested hosts: **ETC003**, no generation (until backlog nested work is planned and done).
 8. Flags: `ToString()` lookup only; combined values → `Empty` unless Flags work is implemented.
+9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple`): opt-in projection of enum-member attributes to nullable host properties; optional `Name`; default property name strips `"Attribute"` suffix; slim ctor + object initializers; reconstructible attributes only.
 
 ## Diagnostics (current)
 
@@ -72,6 +70,9 @@ Do not re-litigate unless the user overrides.
 | `ETC001` | Error | Host not `partial` |
 | `ETC002` | Warning | Enum has no named members |
 | `ETC003` | Error | Nested host |
+| `ETC010` | Warning | Attribute cannot be reconstructed for property |
+| `ETC011` | Error | Duplicate `EnumToClassProperty<T>` for same `T` |
+| `ETC012` | Error | Invalid / conflicting property name |
 
 `EnumToClassDiagnostics.cs`; release tracking via `AnalyzerReleases.*.md`.
 
@@ -81,7 +82,9 @@ Do not re-litigate unless the user overrides.
 |---------|----------|
 | Generator | `EnumToClassGenerator.cs` |
 | Model | `EnumToClassData.cs` |
-| Marker attribute(s) | `EnumToClassAttributeDefinition.cs` (+ more when attribute-properties ships) |
+| Marker attributes | `EnumToClassAttributeDefinition.cs` |
+| Attribute → C# expression | `Helpers/AttributeConstructionEmitter.cs` |
+| Property naming | `Helpers/PropertyNameHelper.cs` |
 | Docs / Description | `Helpers/FieldSymbolExtensions.cs`, `DocumentationFormatter.cs` |
 | Snapshots harness | `tests/EnumToClass.Tests.Snapshot/Tests.Default.cs` |
 
