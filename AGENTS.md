@@ -35,7 +35,7 @@ Keep this file **lean**: process rules, stable product facts, **current plan poi
 
 ## Active plan
 
-_None._ Last completed: [`plans/enum-to-class-property-source.md`](plans/enum-to-class-property-source.md) (`Source` on `EnumToClassProperty`).
+_None._ Last completed: [`plans/enum-to-class-property-as-boolean.md`](plans/enum-to-class-property-as-boolean.md) (`AsBoolean` presence flag).
 
 ## Backlog
 
@@ -61,7 +61,7 @@ Do not re-litigate unless the user overrides.
 6. **`TryGetByName`**: additive; miss → `false` + `Empty`.
 7. Nested hosts: **ETC003**, no generation (until backlog nested work is planned and done).
 8. Flags: `ToString()` lookup only; combined values → `Empty` unless Flags work is implemented.
-9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple` on host applications): opt-in projection; optional `Name`, **`AsArray`** (`T[]`), **`Source`** (flat member of TAttribute → project value type instead of instance); slim ctor + object initializers; reconstructible constants only.
+9. **`EnumToClassPropertyAttribute<TAttribute>`** (`AllowMultiple` on host applications): opt-in projection; optional `Name`, **`AsArray`**, **`Source`**, **`AsBoolean`** (presence `bool`; not with AsArray/Source); slim ctor + object initializers.
 
 ## Diagnostics (current)
 
@@ -74,6 +74,7 @@ Do not re-litigate unless the user overrides.
 | `ETC011` | Error | Duplicate `EnumToClassProperty<T>` for same `T` |
 | `ETC012` | Error | Invalid / conflicting property name |
 | `ETC014` | Error | Invalid `Source` on `EnumToClassProperty` |
+| `ETC015` | Error | Conflicting `EnumToClassProperty` options |
 
 `EnumToClassDiagnostics.cs`; release tracking via `AnalyzerReleases.*.md`.
 

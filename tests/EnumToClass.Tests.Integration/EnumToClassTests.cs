@@ -312,4 +312,16 @@ public sealed class EnumToClassTests
         sut.Permissions.Should().NotBeNull().And.BeEmpty();
     }
 
+    [Fact]
+    public void AttributeProperties_AsBoolean_WhenPresent_ShouldBeTrue()
+    {
+        FeatureFlagClass.SensitiveInstance.HasAdminOnly.Should().BeTrue();
+    }
+
+    [Fact]
+    public void AttributeProperties_AsBoolean_WhenAbsent_ShouldBeFalse()
+    {
+        FeatureFlagClass.PublicInstance.HasAdminOnly.Should().BeFalse();
+    }
+
 }

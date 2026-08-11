@@ -202,3 +202,21 @@ public enum RoleTypes
 public sealed partial class RoleTypeClass
 {
 }
+
+[AttributeUsage(AttributeTargets.Field)]
+public sealed class AdminOnlyAttribute : Attribute
+{
+}
+
+public enum FeatureFlags
+{
+    [AdminOnly]
+    Sensitive = 0,
+    Public = 1,
+}
+
+[VRT.Generators.EnumToClass.EnumToClass<FeatureFlags>]
+[VRT.Generators.EnumToClass.EnumToClassProperty<AdminOnlyAttribute>(AsBoolean = true, Name = "HasAdminOnly")]
+public sealed partial class FeatureFlagClass
+{
+}
